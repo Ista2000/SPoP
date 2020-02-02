@@ -17,3 +17,9 @@ public:
 	bool del(int N); //delete Nth key-value pair
 };
 
+int main()
+{
+	cout << "hello";
+	return 0;
+}
+
