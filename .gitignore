@@ -1,2 +1,3 @@
-spop
-spop.exe
+!.gitignore
+!*.md
+!*.cpp
