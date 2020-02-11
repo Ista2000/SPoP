@@ -10,6 +10,7 @@ struct Slice {
 struct TrieNode {
 	int arr[27];
 	bool end = false;
+	int ends;
 	Slice* data;
 };
 
@@ -18,12 +19,15 @@ struct TrieNode {
 * Just a vanilla trie with 26 entries
 */
 
+// TODO: Add lexicographical search functionality
+// TODO: Compute score the current model achieves based on the given parameters
+
 class kvStore {
 public:
 	kvStore(uint64_t max_entries);
 	bool get(Slice &key, Slice &value); //returns false if key didn’t exist
 	bool put(Slice &key, Slice &value, int, int); //returns true if value overwritten
-	bool del(Slice &key);			
+	bool del(Slice &key, int, int);			
 	bool get(int N, Slice &key, Slice &value); //returns Nth key-value pair
 	bool del(int N); //delete Nth key-value pair
 
@@ -61,22 +65,27 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0) {
 		return true;
 	}
 	if(nodes[cur].arr[key.data[i] - 'a'])
-		cur = nodes[cur].arr[key.data[i] - 'a'], cout<<"WTF"<<endl;
+		cur = nodes[cur].arr[key.data[i] - 'a'];
 	else
 		cur = nodes[cur].arr[key.data[i] - 'a'] = free_head, free_head = nodes[free_head].arr[26];
 	nodes[cur].arr[26] = -1;
+	nodes[cur].ends++;
 	return put(key, value, i+1, cur);
 }
 
-bool kvStore::del(Slice &key) {
-	int cur = 0;
-	for(int i = 0;i < key.size; i++) {
-		if(nodes[cur].arr[key.data[i] - 'a'])
-			cur = nodes[cur].arr[key.data[i] - 'a'];
-		else
-			cur = nodes[cur].arr[key.data[i] - 'a'] = free_head, free_head = nodes[free_head].arr[26];
-		nodes[cur].arr[26] = -1;
+bool kvStore::del(Slice &key, int i = 0, int cur = 0) {
+	if(i == key.size)
+	{
+		nodes[cur].end = false;
+		return true;
 	}
-	nodes[cur].end = false;
-	return true;
+
+	if(nodes[cur].arr[key.data[i] - 'a'])
+		cur = nodes[cur].arr[key.data[i] - 'a'];
+	else
+		return false;
+	nodes[cur].arr[26] = -1;
+	bool ret = del(key, i+1, cur);
+	nodes[cur].ends -= ret;
+	return ret;
 }
