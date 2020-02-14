@@ -3,7 +3,8 @@
 #include <string>
 using namespace std;
 
-int main() {
+int main() 
+{
 	kvStore kvs(5);
 	Slice key;
 	Slice value;
