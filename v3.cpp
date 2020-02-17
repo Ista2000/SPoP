@@ -9,6 +9,7 @@ struct Slice {
 };
 
 struct TrieNode {
+	int arr[27];
 	BST bst;
 	bool end = false;
 	int ends = 0;
@@ -107,7 +108,7 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0) {
 	return ret;
 }
 
-bool get(int N, Slice &key, Slice &value) {
+bool kvStore::get(int N, Slice &key, Slice &value) {
 	int cur = 0;
 	while(1) {
 		for(int i = 0;i<26;i++) {
