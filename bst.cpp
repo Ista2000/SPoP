@@ -53,6 +53,9 @@ public:
 		int cur = 0;
 		while(nodes[cur].left != nodes[cur].right) {
 			if(nodes[cur].c == c) {
+				nodes[cur].left = nodes[cur].right = -1;
+				nodes[free_tail].data = cur;
+				free_tail = cur;
 				return true;
 			}
 			if(nodes[cur].c < c)
