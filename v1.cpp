@@ -29,7 +29,7 @@ public:
 	bool put(Slice &key, Slice &value, int, int); //returns true if value overwritten
 	bool del(Slice &key, int, int);
 	bool get(int, Slice &key, Slice &value); //returns Nth key-value pair
-	bool del(int, int);				 //delete Nth key-value pair
+	bool del(int, int);						 //delete Nth key-value pair
 
 	TrieNode *nodes;
 	int free_head, free_tail;
@@ -169,7 +169,13 @@ bool kvStore::del(int N, int cur = 0)
 	for (int i = 0; i < 26; i++)
 	{
 		if (!nodes[cur].arr[i])
+		{
+			if (i == 25)
+				return false;
+
 			continue;
+		}
+
 		if (nodes[nodes[cur].arr[i]].ends < N)
 			N -= nodes[nodes[cur].arr[i]].ends;
 		else
@@ -177,8 +183,6 @@ bool kvStore::del(int N, int cur = 0)
 			cur = nodes[cur].arr[i];
 			break;
 		}
-		if (i == 25)
-			return false;
 	}
 
 	bool ret = del(N, cur);

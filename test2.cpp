@@ -3,7 +3,7 @@
 #include<stdlib.h>
 #include<stdint.h>
 #include <time.h>
-#include "v1.cpp"
+#include "v4.cpp"
 using namespace std;
 
 // struct Slice {
@@ -59,11 +59,11 @@ int main() {
     srand(time(0));
 
     //Instaniate KV Store
-    kvStore Database(1000000);
+    kvStore Database(1250000);
 
     long double total_time = 0;
 
-    for (int i=0; i<1000000; i++)
+    for (int i=0; i<1250000; i++)
     {
         uint8_t key_size = random_key_size();
         char *key_value = random_string(key_size);
