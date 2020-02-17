@@ -30,20 +30,36 @@ public:
 	bool del(Slice &key, int, int);
 	bool get(int, Slice &key, Slice &value); //returns Nth key-value pair
 	bool del(int, int);						 //delete Nth key-value pair
+	bool resize();
 
 	TrieNode *nodes;
 	int free_head, free_tail;
+	uint64_t size;
 };
 
 kvStore::kvStore(uint64_t max_entries)
 {
-	nodes = (TrieNode *)calloc(max_entries * 52, sizeof(TrieNode));
-	nodes[0].arr[26] = -1; // not free
-	for (int i = 1; i < 52 * max_entries - 1; i++)
-		nodes[i].arr[26] = i + 1; // free
-
+	nodes = (TrieNode *)calloc(3, sizeof(TrieNode));
+	size = 3;
+	nodes[0].arr[26] = -1;
+	nodes[1].arr[26] = 2;
 	free_head = 1;
-	free_tail = max_entries * 52 - 1;
+	free_tail = 2;
+}
+
+bool kvStore::resize() {
+	int old_size = size;
+	size <<= 1;
+	TrieNode *new_nodes = (TrieNode *)calloc(size, sizeof(TrieNode));
+	memcpy(new_nodes, nodes, sizeof(TrieNode) * size);
+	delete[] nodes;
+	nodes = new_nodes;
+
+	nodes[free_tail].arr[26] = old_size;
+	for(int i = old_size; i < size - 1;i++)
+		nodes[i].arr[26] = i+1;
+	free_tail = size - 1;
+	return true;
 }
 
 bool kvStore::get(Slice &key, Slice &value)
@@ -63,6 +79,7 @@ bool kvStore::get(Slice &key, Slice &value)
 
 bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 {
+
 	if (i == key.size)
 	{
 		nodes[cur].data = &value;
@@ -74,6 +91,9 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 		cur = nodes[cur].arr[key.data[i] - 'a'];
 	else
 		cur = nodes[cur].arr[key.data[i] - 'a'] = free_head, free_head = nodes[free_head].arr[26];
+	
+	if(free_head == free_tail)
+		resize();
 
 	nodes[cur].arr[26] = -1;
 	nodes[cur].ends++;
