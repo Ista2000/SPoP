@@ -10,7 +10,7 @@ struct Slice {
 struct TrieNode {
 	int arr[27];
 	bool end = false;
-	int ends;
+	int ends = 0;
 	Slice* data;
 };
 
@@ -19,17 +19,14 @@ struct TrieNode {
 * Just a vanilla trie with 26 entries
 */
 
-// TODO: Add lexicographical search functionality
-// TODO: Compute score the current model achieves based on the given parameters
-
 class kvStore {
 public:
 	kvStore(uint64_t max_entries);
 	bool get(Slice &key, Slice &value); //returns false if key didn’t exist
 	bool put(Slice &key, Slice &value, int, int); //returns true if value overwritten
 	bool del(Slice &key, int, int);			
-	bool get(int N, Slice &key, Slice &value); //returns Nth key-value pair
-	bool del(int N); //delete Nth key-value pair
+	bool get(int, Slice &key, Slice &value); //returns Nth key-value pair
+	bool del(int, int, int); //delete Nth key-value pair
 
 	TrieNode *nodes;
 	int free_head, free_tail;
@@ -58,10 +55,10 @@ bool kvStore::get(Slice &key, Slice &value) {
 }
 
 bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0) {
-	if(i == key.size)
-	{
+	if(i == key.size) {
 		nodes[cur].data = &value;
 		nodes[cur].end = true;
+		nodes[cur].ends++;
 		return true;
 	}
 	if(nodes[cur].arr[key.data[i] - 'a'])
@@ -74,9 +71,17 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0) {
 }
 
 bool kvStore::del(Slice &key, int i = 0, int cur = 0) {
-	if(i == key.size)
-	{
+	if(i == key.size) {
 		nodes[cur].end = false;
+		nodes[cur].ends--;
+
+		if(!nodes[cur].ends)
+		{
+			nodes[free_tail].arr[26] = cur;
+			nodes[cur].arr[26] = 0;
+			free_tail = cur;
+		}
+
 		return true;
 	}
 
@@ -84,8 +89,73 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0) {
 		cur = nodes[cur].arr[key.data[i] - 'a'];
 	else
 		return false;
-	nodes[cur].arr[26] = -1;
 	bool ret = del(key, i+1, cur);
 	nodes[cur].ends -= ret;
+
+	if(!nodes[cur].ends)
+	{
+		nodes[free_tail].arr[26] = cur;
+		nodes[cur].arr[26] = 0;
+		free_tail = cur;
+	}
+
+
 	return ret;
+}
+
+bool get(int N, Slice &key, Slice &value) {
+	int cur = 0;
+	while(1) {
+		for(int i = 0;i<26;i++) {
+			if(!nodes[cur].arr[i]) continue;
+			if(nodes[nodes[cur].arr[i]].ends < N)
+				N -= nodes[nodes[cur].arr[i]].ends;
+			else {
+				cur = nodes[cur].arr[i];
+				break;
+			}
+			if(i == 25)
+				return false;
+		}
+		if(nodes[cur].ends == 1 && N == 1 && nodes[cur].end) {
+			// TODO: Assign key
+			value = *nodes[cur].data;
+			return true;
+		}
+	}
+}
+
+bool kvStore::del(int N, int i = 0, int cur = 0) {
+	if(nodes[cur].ends == 1 && N == 1 && nodes[cur].end) {
+		nodes[cur].end = false;
+		nodes[cur].ends--;
+		
+		if(!nodes[cur].ends) {
+			nodes[free_tail].arr[26] = cur;
+			nodes[cur].arr[26] = 0;
+			free_tail = cur;
+		}
+
+		return true;
+	}
+
+	for(int i = 0;i<26;i++) {
+		if(!nodes[cur].arr[i]) continue;
+		if(nodes[nodes[cur].arr[i]].ends < N)
+			N -= nodes[nodes[cur].arr[i]].ends;
+		else {
+			cur = nodes[cur].arr[i];
+			break;
+		}
+		if(i == 25)
+			return false;
+	}
+
+	bool ret = del(N, i+1, cur);
+	nodes[cur].ends -= ret;
+	if(!nodes[cur].ends) {
+		nodes[free_tail].arr[26] = cur;
+		nodes[cur].arr[26] = 0;
+		free_tail = cur;
+	}
 }
