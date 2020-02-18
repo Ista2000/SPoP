@@ -31,12 +31,30 @@ int main()
 	value3.data = onepluis;
 
 	kvs.put(key1, value1);
-	kvs.put(key1, value1);
+	kvs.put(key2, value2);
 	kvs.put(key3, value3);
-	cout<<kvs.del(1)<<endl;
-	cout<<kvs.del(1)<<endl;
-	cout<<kvs.del(1)<<endl;
-	cout<<kvs.del(1)<<endl;
+	cout<<kvs.del(2)<<endl;
+	cout<<kvs.del(2)<<endl;
+	// cout<<kvs.get(key2,value2);
+
+	// string key = "abc";
+	// int keyLength = key.length();
+	// char *keyArray;
+	// keyArray = (char *)malloc(keyLength);
+
+	// for (int i = 0; i < keyLength; i++)
+	// 	keyArray[i] = key[i];
+
+	// Slice keySlice, valueSlice;
+	// keySlice.size = (uint8_t)keyLength;
+	// keySlice.data = keyArray;
+	// // cout << rem << endl;
+	// bool check = kvs.del(5);
+	// bool check2 = kvs.get(keySlice, valueSlice);
+	// cout<<check<<endl;
+	// cout<<kvs.del(1)<<endl;
+	// cout<<kvs.del(1)<<endl;
+	// cout<<kvs.del(1)<<endl;
 
 	// if(kvs.get(1, key3, value3)) {
 	// 	string out(value3.data);

@@ -33,14 +33,14 @@ string random_value(int stringLength)
 }
 
 long CLOCKS_PER_SECOND = 1000000;
-kvStore kv(10000000);
+kvStore kv(1000000);
 map<string, string> db;
 int db_size = 0;
 int num = 0;
 
 int main()
 {
-	srand(time(NULL));
+	srand(1274);
 	for (int i = 0; i < 100000; i++)
 	{
 		int k = rand() % 64 + 1;
@@ -75,6 +75,7 @@ int main()
 
 	bool incorrect = false;
 
+	int count = 0;
 	for (int i = 0; i < 10000; i++)
 	{
 		int x = rand() % 5;
@@ -85,9 +86,10 @@ int main()
 			char *keyArray;
 			keyArray = (char *)malloc(keyLength + 1);
 
-			for (int i = 0; i < keyLength; i++)
-				keyArray[i] = k[i];
-			keyArray[keyLength] = '\0';
+			// for (int i = 0; i < keyLength; i++)
+			// keyArray[i] = k[i];
+			// keyArray[keyLength] = '\0';
+			strcpy(keyArray, k.c_str());
 
 			Slice keySlice, valueSlice;
 			keySlice.size = (uint8_t)keyLength;
@@ -96,7 +98,7 @@ int main()
 			bool ans = kv.get(keySlice, valueSlice);
 			map<string, string>::iterator itr = db.find(k);
 			if ((ans == false && itr != db.end()) || (ans == true && itr == db.end()))
-				incorrect = true;
+				cout << "asidhasouid" << endl, incorrect = true;
 		}
 		else if (x == 1)
 		{
@@ -104,19 +106,17 @@ int main()
 			string key = random_key(k);
 			int keyLength = key.length();
 			char *keyArray;
-			keyArray = (char *)malloc(keyLength);
+			keyArray = (char *)malloc(keyLength+1);
 
-			for (int i = 0; i < keyLength; i++)
-				keyArray[i] = key[i];
+			strcpy(keyArray, key.c_str());
 
 			int v = rand() % 256 + 1;
 			string value = random_value(v);
 			int valueLength = value.length();
 			char *valueArray;
-			valueArray = (char *)malloc(valueLength);
+			valueArray = (char *)malloc(valueLength+1);
 
-			for (int i = 0; i < valueLength; i++)
-				valueArray[i] = value[i];
+			strcpy(valueArray, value.c_str());
 
 			Slice keySlice, valueSlice;
 			keySlice.size = (uint8_t)keyLength;
@@ -132,7 +132,11 @@ int main()
 			bool check2 = kv.get(keySlice, valueSlice);
 			db_size++;
 			if (check2 == false || check1 != ans)
+			{
 				incorrect = true;
+				// cout<<"asidhasouid"<<endl;
+				// cout<<"asidhasouidddddddddddddd"<<endl;
+			}
 		}
 		else if (x == 2)
 		{
@@ -147,9 +151,10 @@ int main()
 			char *keyArray;
 			keyArray = (char *)malloc(keyLength + 1);
 
-			for (int i = 0; i < keyLength; i++)
-				keyArray[i] = key[i];
-			keyArray[keyLength] = '\0';
+			// for (int i = 0; i < keyLength; i++)
+			// 	keyArray[i] = key[i];
+			// keyArray[keyLength] = '\0';
+			strcpy(keyArray, key.c_str());
 
 			Slice keySlice;
 			keySlice.size = (uint8_t)keyLength;
@@ -164,47 +169,72 @@ int main()
 			// cout << key << " " << keySlice.data << endl;
 			// cout << check << " " << check2 << endl;
 			if (check2 == true)
+			{
+				// cout<<"asidhasouid"<<endl;
 				incorrect = true;
+			}
 		}
-		else if (x == 3)
-		{
-			incorrect = false;
-			int max_size = db.size();
-			int rem = rand() % max_size;
-			Slice keySlice, valueSlice;
-			pair<string, string> check = kv.get(rem, keySlice, valueSlice);
-			map<string, string>::iterator itr = db.begin();
-			for (int i = 0; i < rem; i++)
-				itr++;
-			if (check.first != itr->first || check.second != itr->second)
-				incorrect = true;
-		}
+		// else if (x == 3)
+		// {
+		// 	incorrect = false;
+		// 	int max_size = db.size();
+		// 	int rem = rand() % max_size;
+		// 	Slice keySlice, valueSlice;
+		// 	pair<string, string> check = kv.get(rem, keySlice, valueSlice);
+		// 	map<string, string>::iterator itr = db.begin();
+		// 	for (int i = 0; i < rem; i++)
+		// 		itr++;
+		// 	if (check.first != itr->first || check.second != itr->second)
+		// 		incorrect = true;
+		// }
 		else if (x == 4)
 		{
+			count++;
 			int max_size = db.size();
+			if(!max_size)break;
 			int rem = rand() % max_size;
+			assert(max_size == db.size());
 			map<string, string>::iterator itr = db.begin();
 			for (int i = 0; i < rem; i++)
 				itr++;
 			string key = itr->first;
 			int keyLength = key.length();
 			char *keyArray;
-			keyArray = (char *)malloc(keyLength);
+			keyArray = (char *)malloc(keyLength + 1);
 
-			for (int i = 0; i < keyLength; i++)
-				keyArray[i] = key[i];
+			// for (int i = 0; i < keyLength; i++)
+			// 	keyArray[i] = key[i];
+			// keyArray[keyLength] = '\0';
+			strcpy(keyArray, key.c_str());
+			// cout<<key<<" "<<keyArray<<endl;
 
 			Slice keySlice, valueSlice;
-			keySlice.size = (uint8_t)keyLength;
+			keySlice.size = (uint8_t)(keyLength);
 			keySlice.data = keyArray;
-			cout << rem << endl;
-			bool check = kv.del(rem);
+			// cout << rem << endl;
+			if (kv.del(rem + 1))
+			{
+				// cout << "Deleted " << key << endl;
+				// incorrect = true;
+				// break;
+			}
+			else
+			{
+				cout << "Failed delete " << key << endl;
+				// incorrect = true;
+				// break;
+			}
 			db.erase(itr);
 			db_size--;
 			bool check2 = kv.get(keySlice, valueSlice);
-
+			
 			if (check2 == true)
+			{
+				cout << "Unfortunately found: "<< key << endl;
 				incorrect = true;
+				break;
+			}
+			// cout << "Couldn't find: " << key << endl;
 		}
 	}
 	if (incorrect == true)

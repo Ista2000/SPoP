@@ -31,8 +31,8 @@ class kvStore
 {
 public:
 	kvStore(uint64_t max_entries);
-	bool get(Slice &key, Slice &value);					 //returns false if key didn’t exist
-	bool put(Slice &key, Slice &value, int&, int, int); //returns true if value overwritten
+	bool get(Slice &key, Slice &value);			  //returns false if key didn’t exist
+	bool put(Slice &key, Slice &value, int, int); //returns true if value overwritten
 	bool del(Slice &key, int, int);
 	bool get(int, Slice &key, Slice &value); //returns Nth key-value pair
 	bool del(int, int);						 //delete Nth key-value pair
@@ -89,25 +89,18 @@ bool kvStore::get(Slice &key, Slice &value)
 }
 
 // DO NOT DELETE, essential for passing default value to parameter passed by reference in kvStore::put - Shanmukh
-int global = 0; 
-//This has been an absolute pleasure - Manvith
 
-bool kvStore::put(Slice &key, Slice &value, int& changed = global, int i = 0, int cur = 0)
+bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 {
 	if (i == key.size)
 	{
-		changed = 1;
 		nodes[cur].data = &value;
-
 		if (!nodes[cur].end)
 		{
 			nodes[cur].end = true;
 			nodes[cur].ends++;
 			return false;
 		}
-
-		nodes[cur].end = true;
-		nodes[cur].ends++;
 		return true;
 	}
 
@@ -123,15 +116,16 @@ bool kvStore::put(Slice &key, Slice &value, int& changed = global, int i = 0, in
 		resize();
 
 	nodes[cur].arr[52] = -1;
-	// int changed = 0;
 
-	bool ret = put(key, value, changed, i + 1, cur);
-	nodes[old_cur].ends += changed;
+	bool ret = put(key, value, i + 1, cur);
+	nodes[old_cur].ends += 1 - ret;
 	return ret;
 }
 
 bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 {
+	// cout<<"DEL: "<<cur<<" "<<nodes[cur].end<<" "<<nodes[cur].ends<<endl;
+
 	if (i == key.size)
 	{
 		if (nodes[cur].end)
@@ -151,27 +145,28 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 		return false;
 	}
 
-	int x;
+	int x, oldCur = cur;
 	encode(x, key.data[i]);
+
 	if (nodes[cur].arr[x])
 		cur = nodes[cur].arr[x];
 	else
 		return false;
 
 	bool ret = del(key, i + 1, cur);
-	nodes[cur].ends -= ret;
+	nodes[oldCur].ends -= ret;
 
-	if (!nodes[cur].ends && !nodes[cur].end) // second if might be unnecessary
+	if (!nodes[oldCur].ends && !nodes[oldCur].end) // second if might be unnecessary
 	{
 		for (int i = 0; i < 52; i++)
-			nodes[cur].arr[i] = 0;
+			nodes[oldCur].arr[i] = 0;
 
-		nodes[free_tail].arr[52] = cur;
-		nodes[cur].arr[52] = 0;
-		free_tail = cur;
+		nodes[free_tail].arr[52] = oldCur;
+		nodes[oldCur].arr[52] = 0;
+		free_tail = oldCur;
 
-		if (cur == 0) // might be unnecessary
-			nodes[cur].arr[52] = -1;
+		if (oldCur == 0) // might be unnecessary
+			nodes[oldCur].arr[52] = -1;
 	}
 
 	return ret;
@@ -220,43 +215,71 @@ bool kvStore::get(int N, Slice &key, Slice &value)
 	}
 	return false;
 }
-
 bool kvStore::del(int N, int cur = 0)
 {
+	// cout << "DEL: " << cur << " " << N << " " << nodes[cur].end << " " << nodes[cur].ends << endl;
 	if (N == 1 && nodes[cur].end)
 	{
 		nodes[cur].end = false;
+		// cout << "BASE: " << nodes[cur].ends << " " << endl;
+		nodes[cur].ends--;
+		if (!nodes[cur].ends)
+		{
+			for (int i = 0; i < 52; i++) // PLEASE check this loop
+				nodes[cur].arr[i] = 0;
+			nodes[free_tail].arr[52] = cur;
+			nodes[cur].arr[52] = 0;
+			free_tail = cur;
+		}
 		return true;
 	}
 
 	N -= nodes[cur].end;
 
-	for (int i = 0; i < 52; i++)
+	int oldCur = cur, i;
+	for (i = 0; i < 52; i++)
 	{
 		if (!nodes[cur].arr[i])
 		{
 			if (i == 51)
 				return false;
-
 			continue;
 		}
-
+		// cout << i << " " << N << endl;
 		if (nodes[nodes[cur].arr[i]].ends < N)
 			N -= nodes[nodes[cur].arr[i]].ends;
 		else
 		{
+			oldCur = cur;
 			cur = nodes[cur].arr[i];
 			break;
 		}
+		if (i == 51)
+			return false;
 	}
-
+	// cout << oldCur << endl;
+	char c;
+	if (i < 26)
+		c = (char(i + 'A'));
+	else
+		c = (char)(i + 'a' - 26);
+	// cout << c << endl;
 	bool ret = del(N, cur);
-	nodes[cur].ends -= ret;
-	if (!nodes[cur].ends)
+
+	nodes[oldCur].ends -= ret;
+	if (ret && nodes[cur].ends == 0)
+		nodes[oldCur].arr[i] = 0;
+	if (!nodes[oldCur].ends && !nodes[oldCur].end) // second if might be unnecessary
 	{
-		nodes[free_tail].arr[52] = cur;
-		nodes[cur].arr[52] = 0;
-		free_tail = cur;
+		for (int i = 0; i < 52; i++)
+			nodes[oldCur].arr[i] = 0;
+
+		nodes[free_tail].arr[52] = oldCur;
+		nodes[oldCur].arr[52] = 0;
+		free_tail = oldCur;
+
+		if (oldCur == 0) // might be unnecessary
+			nodes[oldCur].arr[52] = -1;
 	}
 	return ret;
 }
