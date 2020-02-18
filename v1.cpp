@@ -94,7 +94,9 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 {
 	if (i == key.size)
 	{
-		nodes[cur].data = &value;
+		nodes[cur].data = (Slice *)malloc(sizeof(value));
+		memcpy(nodes[cur].data, &value, sizeof(value));
+		// nodes[cur].data = &value;
 		if (!nodes[cur].end)
 		{
 			nodes[cur].end = true;
@@ -175,7 +177,7 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 bool kvStore::get(int N, Slice &key, Slice &value)
 {
 	Slice temp;
-	char *array = (char *)malloc(64);
+	char *array = (char *)malloc(65);
 	temp.data = array;
 	temp.size = 0;
 	array[temp.size] = '\0';
@@ -204,10 +206,15 @@ bool kvStore::get(int N, Slice &key, Slice &value)
 				cur = nodes[cur].arr[i];
 				break;
 			}
+			if (i == 51)
+				return false;
 		}
 		if (N == 1 && nodes[cur].end)
 		{
-			value = *nodes[cur].data;
+			value.data = (char *)malloc(256);
+			memcpy(value.data, (nodes[cur].data)->data, 256);
+			value.size = strlen(value.data);
+			// value = *nodes[cur].data;
 			key = temp;
 			return true;
 		}

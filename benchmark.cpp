@@ -27,7 +27,7 @@ string random_value(int stringLength)
 		letters += char(i);
 
 	for (int i = 0; i < stringLength; i++)
-		value = value + letters[rand() % 256];
+		value = value + letters[rand() % 26 + 'a'];
 
 	return value;
 }
@@ -40,11 +40,11 @@ int num = 0;
 
 int main()
 {
-	srand(1274);
+	srand(time(NULL));
 	for (int i = 0; i < 100000; i++)
 	{
 		int k = rand() % 64 + 1;
-		int v = rand() % 256 + 1;
+		int v = rand() % 5 + 1;
 		string key = random_key(k);
 		int keyLength = key.length();
 		char *keyArray;
@@ -106,15 +106,15 @@ int main()
 			string key = random_key(k);
 			int keyLength = key.length();
 			char *keyArray;
-			keyArray = (char *)malloc(keyLength+1);
+			keyArray = (char *)malloc(keyLength + 1);
 
 			strcpy(keyArray, key.c_str());
 
-			int v = rand() % 256 + 1;
+			int v = rand() % 5 + 1;
 			string value = random_value(v);
 			int valueLength = value.length();
 			char *valueArray;
-			valueArray = (char *)malloc(valueLength+1);
+			valueArray = (char *)malloc(valueLength + 1);
 
 			strcpy(valueArray, value.c_str());
 
@@ -128,8 +128,10 @@ int main()
 			db.insert(pair<string, string>(key, value));
 
 			bool check1 = kv.get(keySlice, valueSlice);
+			// string out(valueSlice.data);
 			bool ans = kv.put(keySlice, valueSlice);
 			bool check2 = kv.get(keySlice, valueSlice);
+			// cout<<value<<" "<<valueSlice.data<<endl;
 			db_size++;
 			if (check2 == false || check1 != ans)
 			{
@@ -174,24 +176,35 @@ int main()
 				incorrect = true;
 			}
 		}
-		// else if (x == 3)
-		// {
-		// 	incorrect = false;
-		// 	int max_size = db.size();
-		// 	int rem = rand() % max_size;
-		// 	Slice keySlice, valueSlice;
-		// 	pair<string, string> check = kv.get(rem, keySlice, valueSlice);
-		// 	map<string, string>::iterator itr = db.begin();
-		// 	for (int i = 0; i < rem; i++)
-		// 		itr++;
-		// 	if (check.first != itr->first || check.second != itr->second)
-		// 		incorrect = true;
-		// }
-		else if (x == 4)
+		else if (x == 3)
 		{
 			count++;
+			incorrect = false;
 			int max_size = db.size();
-			if(!max_size)break;
+			int rem = rand() % max_size;
+			Slice keySlice, valueSlice;
+			bool checkStatus = kv.get(rem + 1, keySlice, valueSlice);
+			pair<string, string> check = make_pair(string(keySlice.data), string(valueSlice.data));
+
+			map<string, string>::iterator itr = db.begin();
+			for (int i = 0; i < rem; i++)
+				itr++;
+			cout << count << endl;
+			cout << check.first << " " << itr->first << endl;
+			cout << check.second << " " << itr->second << endl;
+			if (check.first != itr->first || check.second != itr->second)
+			{
+
+				incorrect = true;
+				break;
+			}
+		}
+		else if (x == 4)
+		{
+			// count++;
+			int max_size = db.size();
+			if (!max_size)
+				break;
 			int rem = rand() % max_size;
 			assert(max_size == db.size());
 			map<string, string>::iterator itr = db.begin();
@@ -227,10 +240,10 @@ int main()
 			db.erase(itr);
 			db_size--;
 			bool check2 = kv.get(keySlice, valueSlice);
-			
+
 			if (check2 == true)
 			{
-				cout << "Unfortunately found: "<< key << endl;
+				cout << "Unfortunately found: " << key << endl;
 				incorrect = true;
 				break;
 			}

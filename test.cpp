@@ -27,14 +27,18 @@ int main()
 	char kolata[3] = "ab";
 	key3.data = kolata;
 	value3.size = 7;
-	char onepluis[8] = "istasis";
+	char onepluis[8] = "manvith";
 	value3.data = onepluis;
 
 	kvs.put(key1, value1);
 	kvs.put(key2, value2);
 	kvs.put(key3, value3);
-	cout<<kvs.del(2)<<endl;
-	cout<<kvs.del(2)<<endl;
+	if(kvs.get(3, key3, value3)) {
+		string out(value3.data);
+		cout<<out<<endl;
+	}
+	// cout<<kvs.del(2)<<endl;
+	// cout<<kvs.del(2)<<endl;
 	// cout<<kvs.get(key2,value2);
 
 	// string key = "abc";
@@ -56,10 +60,6 @@ int main()
 	// cout<<kvs.del(1)<<endl;
 	// cout<<kvs.del(1)<<endl;
 
-	// if(kvs.get(1, key3, value3)) {
-	// 	string out(value3.data);
-	// 	cout<<out<<endl;
-	// }
 	// else
 	// 	cout<<"LULLI"<<endl;
 
