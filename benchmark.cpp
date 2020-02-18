@@ -23,11 +23,11 @@ string random_value(int stringLength)
 {
 	string value = "";
 	string letters = "";
-	for (int i = 0; i <= 255; i++)
-		letters += char(i);
+	for (int i = 1; i <= 127; i++)
+		letters += char(i); // contains all ASCII except null character
 
 	for (int i = 0; i < stringLength; i++)
-		value = value + letters[rand()%256];
+		value = value + letters[rand() % 127]; // iterates through all ASCII except null character
 
 	return value;
 }
@@ -108,7 +108,7 @@ int main()
 			string key = random_key(k);
 			int keyLength = key.length();
 			char *keyArray;
-			keyArray = (char *)malloc(keyLength + 1);
+			keyArray = (char *)malloc(keyLength);
 
 			strcpy(keyArray, key.c_str());
 
@@ -116,7 +116,7 @@ int main()
 			string value = random_value(v);
 			int valueLength = value.length();
 			char *valueArray;
-			valueArray = (char *)malloc(valueLength + 1);
+			valueArray = (char *)malloc(valueLength);
 
 			strcpy(valueArray, value.c_str());
 
@@ -129,7 +129,7 @@ int main()
 
 			db.insert(pair<string, string>(key, value));
 			db2[key] = value;
-			
+
 			bool check1 = kv.get(keySlice, valueSlice);
 			bool ans = kv.put(keySlice, valueSlice);
 			bool check2 = kv.get(keySlice, valueSlice);
@@ -146,7 +146,7 @@ int main()
 			for (int i = 0; i < rem; i++)
 				itr++;
 			string key = itr->first;
-			
+
 			int keyLength = key.length();
 			char *keyArray;
 			keyArray = (char *)malloc(keyLength + 1);
@@ -164,7 +164,7 @@ int main()
 			if (check2 == true)
 				incorrect = true;
 		}
-		
+
 		else if (x == 3)
 		{
 			count++;
@@ -223,7 +223,7 @@ int main()
 				incorrect = true;
 		}
 	}
-	
+
 	if (incorrect == true)
 	{
 		cout << 0 << endl;
