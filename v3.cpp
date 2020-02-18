@@ -13,10 +13,12 @@ struct TrieNode {
 	BST bst;
 	bool end = false;
 	int ends = 0;
+	int switch=0;
 	Slice* data;
+	int arr[27];
 };
 
-/* 
+/*
 * Implementation version 3
 * Trie with ART nodes
 * Use a normal unsorted array until size 6
@@ -29,7 +31,7 @@ public:
 	kvStore(uint64_t max_entries);
 	bool get(Slice &key, Slice &value); //returns false if key didn’t exist
 	bool put(Slice &key, Slice &value, int, int); //returns true if value overwritten
-	bool del(Slice &key, int, int);			
+	bool del(Slice &key, int, int);
 	bool get(int, Slice &key, Slice &value); //returns Nth key-value pair
 	bool del(int, int, int); //delete Nth key-value pair
 
@@ -134,7 +136,6 @@ bool kvStore::del(int N, int i = 0, int cur = 0) {
 	if(nodes[cur].ends == 1 && N == 1 && nodes[cur].end) {
 		nodes[cur].end = false;
 		nodes[cur].ends--;
-		
 		if(!nodes[cur].ends) {
 			nodes[free_tail].arr[26] = cur;
 			nodes[cur].arr[26] = 0;
