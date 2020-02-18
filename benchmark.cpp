@@ -27,7 +27,7 @@ string random_value(int stringLength)
 		letters += char(i);
 
 	for (int i = 0; i < stringLength; i++)
-		value = value + letters[rand() % 26 + 'a'];
+		value = value + letters[rand()%256];
 
 	return value;
 }
@@ -44,7 +44,7 @@ int main()
 	for (int i = 0; i < 100000; i++)
 	{
 		int k = rand() % 64 + 1;
-		int v = rand() % 5 + 1;
+		int v = rand() % 256 + 1;
 		string key = random_key(k);
 		int keyLength = key.length();
 		char *keyArray;
@@ -112,7 +112,7 @@ int main()
 
 			strcpy(keyArray, key.c_str());
 
-			int v = rand() % 5 + 1;
+			int v = rand() % 256 + 1;
 			string value = random_value(v);
 			int valueLength = value.length();
 			char *valueArray;
