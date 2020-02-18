@@ -16,7 +16,7 @@ struct TrieNode
 	Slice *data;
 };
 
-/* 
+/*
 * Implementation version 1
 * Just a vanilla trie with 26 entries
 */
@@ -133,6 +133,11 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 
 bool kvStore::get(int N, Slice &key, Slice &value)
 {
+	Slice temp;
+	char *array = (char*)malloc(64);
+	temp.data = array;
+	temp.size=0;
+	array[temp.size]='\0';
 	int cur = 0;
 	while (1)
 	{
@@ -149,14 +154,17 @@ bool kvStore::get(int N, Slice &key, Slice &value)
 				N -= nodes[nodes[cur].arr[i]].ends;
 			else
 			{
+				array[temp.size] = (char)(97+i);
+				temp.size++;
+				array[temp.size] = '\0';
 				cur = nodes[cur].arr[i];
 				break;
 			}
 		}
 		if (N == 1 && nodes[cur].end)
 		{
-			// TODO: Assign key
 			value = *nodes[cur].data;
+			key = temp;
 			return true;
 		}
 		N -= nodes[cur].end;
