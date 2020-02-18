@@ -60,7 +60,6 @@ bool kvStore::resize()
 	size <<= 1;
 	TrieNode *new_nodes = (TrieNode *)calloc(size, sizeof(TrieNode));
 	memcpy(new_nodes, nodes, sizeof(TrieNode) * old_size);
-	// memset(nodes[i].arr, 0, 27 * sizeof(int));
 	delete[] nodes;
 	nodes = new_nodes;
 
@@ -84,11 +83,10 @@ bool kvStore::get(Slice &key, Slice &value)
 	}
 	if (!nodes[cur].end)
 		return false;
+
 	value = *nodes[cur].data;
 	return true;
 }
-
-// DO NOT DELETE, essential for passing default value to parameter passed by reference in kvStore::put - Shanmukh
 
 bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 {
@@ -97,6 +95,7 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 		nodes[cur].data = (Slice *)malloc(sizeof(value));
 		memcpy(nodes[cur].data, &value, sizeof(value));
 		// nodes[cur].data = &value;
+
 		if (!nodes[cur].end)
 		{
 			nodes[cur].end = true;
@@ -136,7 +135,7 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 			nodes[cur].ends--;
 			if (!nodes[cur].ends)
 			{
-				for (int i = 0; i < 52; i++) // PLEASE check this loop
+				for (int i = 0; i < 52; i++)
 					nodes[cur].arr[i] = 0;
 				nodes[free_tail].arr[52] = cur;
 				nodes[cur].arr[52] = 0;
@@ -211,10 +210,9 @@ bool kvStore::get(int N, Slice &key, Slice &value)
 		}
 		if (N == 1 && nodes[cur].end)
 		{
-			value.data = (char *)malloc(256);
-			memcpy(value.data, (nodes[cur].data)->data, 256);
+			value.data = (char *)malloc(257);
+			memcpy(value.data, (nodes[cur].data)->data, 257);
 			value.size = strlen(value.data);
-			// value = *nodes[cur].data;
 			key = temp;
 			return true;
 		}
@@ -232,7 +230,7 @@ bool kvStore::del(int N, int cur = 0)
 		nodes[cur].ends--;
 		if (!nodes[cur].ends)
 		{
-			for (int i = 0; i < 52; i++) // PLEASE check this loop
+			for (int i = 0; i < 52; i++)
 				nodes[cur].arr[i] = 0;
 			nodes[free_tail].arr[52] = cur;
 			nodes[cur].arr[52] = 0;

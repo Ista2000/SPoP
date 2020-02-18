@@ -7,36 +7,71 @@ using namespace std;
 int main() 
 {
 	kvStore kvs(5);
-	Slice key1, key2, key3;
-	Slice value1, value2, value3;
-	key1.size = 3;
-	char sun[4] = "abc";
+	Slice key1, key2, key3, key4, key5;
+	Slice value1, value2, value3, value4, value5;
+
+	key1.size = 2;
+	char sun[3] = "ab";
 	key1.data = sun;
 	value1.size = 7;
 	char shradha[8] = "shradha";
 	value1.data = shradha;
 
-	key2.size = 3;
-	char sunrisers[4] = "abd";
+	key2.size = 2;
+	char sunrisers[3] = "ad";
 	key2.data = sunrisers;
 	value2.size = 7;
 	char istasis[8] = "istasis";
 	value2.data = istasis;
 
 	key3.size = 2;
-	char kolata[3] = "ab";
+	char kolata[3] = "aa";
 	key3.data = kolata;
 	value3.size = 7;
 	char onepluis[8] = "manvith";
 	value3.data = onepluis;
 
+	key4.size = 2;
+	char kolaata[3] = "ac";
+	key4.data = kolaata;
+	value4.size = 7;
+	char oneapluis[8] = "agarwal";
+	value4.data = oneapluis;
+
+	key5.size = 2;
+	char kolaaata[3] = "aa";
+	key5.data = kolaaata;
+	value5.size = 7;
+	char oneplluis[8] = "rishabh";
+	value5.data = oneplluis;
+
+
 	kvs.put(key1, value1);
 	kvs.put(key2, value2);
 	kvs.put(key3, value3);
+	kvs.put(key4, value4);
+	kvs.put(key5, value5);
+
+	if(kvs.get(1, key3, value3)) {
+		string out(value3.data);
+		cout<<out<<endl;
+	}
+	if(kvs.get(2, key3, value3)) {
+		string out(value3.data);
+		cout<<out<<endl;
+	}
 	if(kvs.get(3, key3, value3)) {
 		string out(value3.data);
 		cout<<out<<endl;
 	}
+	if(kvs.get(4, key3, value3)) {
+		string out(value3.data);
+		cout<<out<<endl;
+	}
+	// if(kvs.get(5, key3, value3)) {
+	// 	string out(value3.data);
+	// 	cout<<out<<endl;
+	// }
 	// cout<<kvs.del(2)<<endl;
 	// cout<<kvs.del(2)<<endl;
 	// cout<<kvs.get(key2,value2);
