@@ -39,25 +39,29 @@ public:
 
 kvStore::kvStore(uint64_t max_entries)
 {
-	nodes = (TrieNode *)calloc(3, sizeof(TrieNode));
-	size = 3;
+	nodes = (TrieNode *)calloc(128, sizeof(TrieNode));
+	size = 128;
 	nodes[0].arr[26] = -1;
-	nodes[1].arr[26] = 2;
+	for(int i = 0;i<127;i++)
+		nodes[i].arr[26] = i+1;
 	free_head = 1;
-	free_tail = 2;
+	free_tail = 127;
 }
 
-bool kvStore::resize() {
+bool kvStore::resize()
+{
 	int old_size = size;
 	size <<= 1;
 	TrieNode *new_nodes = (TrieNode *)calloc(size, sizeof(TrieNode));
-	memcpy(new_nodes, nodes, sizeof(TrieNode) * size);
+	memcpy(new_nodes, nodes, sizeof(TrieNode) * old_size);
+	// memset(nodes[i].arr, 0, 27 * sizeof(int));
 	delete[] nodes;
 	nodes = new_nodes;
 
+
 	nodes[free_tail].arr[26] = old_size;
-	for(int i = old_size; i < size - 1;i++)
-		nodes[i].arr[26] = i+1;
+	for (int i = old_size; i < size - 1; i++)
+		nodes[i].arr[26] = i + 1;
 	free_tail = size - 1;
 	return true;
 }
@@ -79,7 +83,6 @@ bool kvStore::get(Slice &key, Slice &value)
 
 bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 {
-
 	if (i == key.size)
 	{
 		nodes[cur].data = &value;
@@ -87,17 +90,19 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 		nodes[cur].ends++;
 		return true;
 	}
+	int old_cur = cur;
 	if (nodes[cur].arr[key.data[i] - 'a'])
 		cur = nodes[cur].arr[key.data[i] - 'a'];
 	else
 		cur = nodes[cur].arr[key.data[i] - 'a'] = free_head, free_head = nodes[free_head].arr[26];
-	
-	if(free_head == free_tail)
+
+	if (free_head == free_tail)
 		resize();
 
 	nodes[cur].arr[26] = -1;
-	nodes[cur].ends++;
-	return put(key, value, i + 1, cur);
+	bool ret = put(key, value, i + 1, cur);
+	nodes[old_cur].ends += ret;
+	return ret;
 }
 
 bool kvStore::del(Slice &key, int i = 0, int cur = 0)
@@ -105,15 +110,6 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 	if (i == key.size)
 	{
 		nodes[cur].end = false;
-		nodes[cur].ends--;
-
-		if (!nodes[cur].ends)
-		{
-			nodes[free_tail].arr[26] = cur;
-			nodes[cur].arr[26] = 0;
-			free_tail = cur;
-		}
-
 		return true;
 	}
 
@@ -140,6 +136,7 @@ bool kvStore::get(int N, Slice &key, Slice &value)
 	int cur = 0;
 	while (1)
 	{
+		// cout<<"GET: "<<nodes[cur].ends<<endl;
 		for (int i = 0; i < 26; i++)
 		{
 			if (!nodes[cur].arr[i])
@@ -172,15 +169,6 @@ bool kvStore::del(int N, int cur = 0)
 	if (N == 1 && nodes[cur].end)
 	{
 		nodes[cur].end = false;
-		nodes[cur].ends--;
-
-		if (!nodes[cur].ends)
-		{
-			nodes[free_tail].arr[26] = cur;
-			nodes[cur].arr[26] = 0;
-			free_tail = cur;
-		}
-
 		return true;
 	}
 
@@ -213,4 +201,5 @@ bool kvStore::del(int N, int cur = 0)
 		nodes[cur].arr[26] = 0;
 		free_tail = cur;
 	}
+	return ret;
 }
