@@ -102,7 +102,7 @@ void *myThreadFun(void *vargp)
 				pthread_mutex_unlock(&(db_mutex));			
 
 			}
-			else if(x==2)
+			else if(x==2) // delete
 			{
 				int max_size = db.size();
 				if (max_size == 0)
@@ -116,11 +116,13 @@ void *myThreadFun(void *vargp)
 					itr++;
 				
 				string key = itr->first;
-				pthread_mutex_unlock(&(db_mutex));
 
 				int keyLength = key.length();
 				char *keyArray;
 				keyArray = (char *)malloc(keyLength + 1);
+				db_size--;
+				db.erase(itr);
+				pthread_mutex_unlock(&(db_mutex));
 
 				strcpy(keyArray, key.c_str());
 
@@ -130,10 +132,6 @@ void *myThreadFun(void *vargp)
 
 				kv.del(keySlice);				// tada
 
-				pthread_mutex_lock(&(db_mutex));
-				db_size--;
-				db.erase(itr);
-				pthread_mutex_unlock(&(db_mutex));
 			}
 
 			else if(x==3) // getN
@@ -157,11 +155,7 @@ void *myThreadFun(void *vargp)
 					itr++;
 				assert(max_size <= db.size());
 				
-				pthread_mutex_unlock(&(db_mutex));
-				
 				kv.del(rem + 1); //tada
-				
-				pthread_mutex_unlock(&(db_mutex));
 				db.erase(itr);
 				db_size--;
 				pthread_mutex_unlock(&(db_mutex));
