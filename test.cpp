@@ -3,7 +3,7 @@
 #include <string>
 using namespace std;
 
-int main() 
+int main()
 {
 	kvStore kvs(5);
 	Slice key1, key2, key3;
@@ -16,7 +16,7 @@ int main()
 	value1.data = shradha;
 
 	key2.size = 2;
-	char sunrisers[3] = "bc";
+	char sunrisers[3] = "Bc";
 	key2.data = sunrisers;
 	value2.size = 7;
 	char istasis[8] = "istasis";
@@ -25,16 +25,16 @@ int main()
 	kvs.put(key2, value2);
 
 	Slice value3;
-	kvs.del(1);
+	// kvs.del(1);
 	if(kvs.get(1, key3, value3)) {
-		string out(value3.data);
+		string out(key3.data);
 		cout<<out<<endl;
 	}
 	else
 		cout<<"LULLI"<<endl;
-	kvs.del(key2);
-	if(kvs.get(1, key3, value3)) {
-		string out(value3.data);
+	// kvs.del(key2);
+	if(kvs.get(2, key3, value3)) {
+		string out(key3.data);
 		cout<<out<<endl;
 	}
 	else
