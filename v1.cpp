@@ -94,6 +94,7 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 	{
 		nodes[cur].data = (Slice *)malloc(sizeof(value));
 		memcpy(nodes[cur].data, &value, sizeof(value));
+		nodes[cur].data->data[nodes[cur].data->size] = 0;
 		// nodes[cur].data = &value;
 
 		if (!nodes[cur].end)
@@ -184,6 +185,7 @@ bool kvStore::get(int N, Slice &key, Slice &value)
 	while (1)
 	{
 		// cout<<"GET: "<<nodes[cur].ends<<endl;
+		N -= nodes[cur].end;
 		for (int i = 0; i < 52; i++)
 		{
 			if (!nodes[cur].arr[i])
@@ -216,7 +218,6 @@ bool kvStore::get(int N, Slice &key, Slice &value)
 			key = temp;
 			return true;
 		}
-		N -= nodes[cur].end;
 	}
 	return false;
 }
