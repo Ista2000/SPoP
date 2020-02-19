@@ -72,10 +72,10 @@ int main()
 		valueSlice.size = (uint8_t)valueLength;
 		valueSlice.data = valueArray;
 
-		if(db[key].size())
-			cout<<"OVERWRITTEN: "<<key<<" "<<value<<endl;
-		else if(key.size() <= 2)
-			cout<<"FIRST ADD: "<<key<<" "<<value<<endl;
+		// if(db[key].size())
+		// 	cout<<"OVERWRITTEN: "<<key<<" "<<value<<endl;
+		// else if(key.size() <= 2)
+		// 	cout<<"FIRST ADD: "<<key<<" "<<value<<endl;
 
 		db.insert(pair<string, string>(key, value));
 		db[key] = value;
@@ -86,7 +86,7 @@ int main()
 	bool incorrect = false;
 
 	int count = 0;
-	for (int i = 0; i < 100000; i++)
+	for (int i = 0; i < 10000; i++)
 	{
 		int x = rand() % 5;
 		if (x == 0)
@@ -114,7 +114,7 @@ int main()
 			string key = random_key(k);
 			int keyLength = key.length();
 			char *keyArray;
-			keyArray = (char *)malloc(keyLength);
+			keyArray = (char *)malloc(keyLength + 1);
 
 			strcpy(keyArray, key.c_str());
 
@@ -122,7 +122,7 @@ int main()
 			string value = random_value(v);
 			int valueLength = value.length();
 			char *valueArray;
-			valueArray = (char *)malloc(valueLength);
+			valueArray = (char *)malloc(valueLength + 1);
 
 			strcpy(valueArray, value.c_str());
 
