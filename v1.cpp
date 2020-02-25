@@ -62,7 +62,6 @@ bool kvStore::resize()
 	memcpy(new_nodes, nodes, sizeof(TrieNode) * old_size);
 	delete[] nodes;
 	nodes = new_nodes;
-
 	nodes[free_tail].arr[52] = old_size;
 	for (int i = old_size; i < size - 1; i++)
 		nodes[i].arr[52] = i + 1;
@@ -109,15 +108,21 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 	int old_cur = cur;
 	int x;
 	encode(x, key.data[i]);
+	// cout<<x<<" "<<i<<" "<<cur<<" "<<free_head<<" "<<free_tail<<" "<<size<<" "<<nodes[cur].arr[x]<<endl;
+
 	if (nodes[cur].arr[x])
 		cur = nodes[cur].arr[x];
 	else
-		cur = nodes[cur].arr[x] = free_head, free_head = nodes[free_head].arr[52];
+	{
+		nodes[cur].arr[x] = free_head;
+		cur = free_head;
+		free_head = nodes[cur].arr[52];
+		nodes[cur].arr[52] = -1;
+	}
 
 	if (free_head == free_tail)
 		resize();
 
-	nodes[cur].arr[52] = -1;
 
 	bool ret = put(key, value, i + 1, cur);
 	nodes[old_cur].ends += 1 - ret;
@@ -126,7 +131,6 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 
 bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 {
-	// cout<<"DEL: "<<cur<<" "<<nodes[cur].end<<" "<<nodes[cur].ends<<endl;
 
 	if (i == key.size)
 	{
@@ -147,7 +151,7 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 		return false;
 	}
 
-	int x, oldCur = cur;
+	int x, old_cur = cur;
 	encode(x, key.data[i]);
 
 	if (nodes[cur].arr[x])
@@ -156,19 +160,19 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 		return false;
 
 	bool ret = del(key, i + 1, cur);
-	nodes[oldCur].ends -= ret;
+	nodes[old_cur].ends -= ret;
 
-	if (!nodes[oldCur].ends && !nodes[oldCur].end) // second if might be unnecessary
+	if (!nodes[old_cur].ends && !nodes[old_cur].end) // second if might be unnecessary
 	{
 		for (int i = 0; i < 52; i++)
-			nodes[oldCur].arr[i] = 0;
+			nodes[old_cur].arr[i] = 0;
 
-		nodes[free_tail].arr[52] = oldCur;
-		nodes[oldCur].arr[52] = 0;
-		free_tail = oldCur;
+		nodes[free_tail].arr[52] = old_cur;
+		nodes[old_cur].arr[52] = 0;
+		free_tail = old_cur;
 
-		if (oldCur == 0) // might be unnecessary
-			nodes[oldCur].arr[52] = -1;
+		if (old_cur == 0) // might be unnecessary
+			nodes[old_cur].arr[52] = -1;
 	}
 
 	return ret;
@@ -242,7 +246,7 @@ bool kvStore::del(int N, int cur = 0)
 
 	N -= nodes[cur].end;
 
-	int oldCur = cur, i;
+	int old_cur = cur, i;
 	for (i = 0; i < 52; i++)
 	{
 		if (!nodes[cur].arr[i])
@@ -256,14 +260,14 @@ bool kvStore::del(int N, int cur = 0)
 			N -= nodes[nodes[cur].arr[i]].ends;
 		else
 		{
-			oldCur = cur;
+			old_cur = cur;
 			cur = nodes[cur].arr[i];
 			break;
 		}
 		if (i == 51)
 			return false;
 	}
-	// cout << oldCur << endl;
+	// cout << old_cur << endl;
 	char c;
 	if (i < 26)
 		c = (char(i + 'A'));
@@ -272,20 +276,20 @@ bool kvStore::del(int N, int cur = 0)
 	// cout << c << endl;
 	bool ret = del(N, cur);
 
-	nodes[oldCur].ends -= ret;
+	nodes[old_cur].ends -= ret;
 	if (ret && nodes[cur].ends == 0)
-		nodes[oldCur].arr[i] = 0;
-	if (!nodes[oldCur].ends && !nodes[oldCur].end) // second if might be unnecessary
+		nodes[old_cur].arr[i] = 0;
+	if (!nodes[old_cur].ends && !nodes[old_cur].end) // second if might be unnecessary
 	{
 		for (int i = 0; i < 52; i++)
-			nodes[oldCur].arr[i] = 0;
+			nodes[old_cur].arr[i] = 0;
 
-		nodes[free_tail].arr[52] = oldCur;
-		nodes[oldCur].arr[52] = 0;
-		free_tail = oldCur;
+		nodes[free_tail].arr[52] = old_cur;
+		nodes[old_cur].arr[52] = 0;
+		free_tail = old_cur;
 
-		if (oldCur == 0) // might be unnecessary
-			nodes[oldCur].arr[52] = -1;
+		if (old_cur == 0) // might be unnecessary
+			nodes[old_cur].arr[52] = -1;
 	}
 	return ret;
 }

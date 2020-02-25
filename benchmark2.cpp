@@ -98,7 +98,7 @@ void *myThreadFun(void *vargp)
 					continue;
 				int rem = rand()%temp;
 				Slice s_key,s_value;
-				bool check = kv.get(rem,s_key,s_value);
+				bool check = kv.get(rem+1,s_key,s_value);
 			}
 			else if(x==4)
 			{
@@ -106,7 +106,7 @@ void *myThreadFun(void *vargp)
 				if (temp == 0)
 					continue;
 				int rem = rand()%temp;
-				bool check = kv.del(rem);
+				bool check = kv.del(rem+1);
 				db_size--;
 			}
 		}
@@ -118,7 +118,8 @@ void *myThreadFun(void *vargp)
 
 int main()
 {
-	for(int i=0;i<100000;i++)
+	srand(time(0));
+	for(int i=0;i<10000;i++)
 	{
 		string key = random_key(rand()%64 + 1);
 		string value = random_key(rand()%255 + 1);
@@ -137,6 +138,7 @@ int main()
 		int x = rand()%5;
 		if(x==0)
 		{
+			// cout<<"GET"<<endl;
 			string key = random_key(rand()%64 + 1);
 			Slice s_key,s_value;
 			strToSlice(key,s_key);
@@ -144,17 +146,18 @@ int main()
 			map<string,string>:: iterator itr = db.find(key);
 			if((ans==false && itr != db.end()) || (ans==true && itr->second != sliceToStr(s_value) ))
 			{
-				cout<<0<<endl;
+				cout<<x<<endl;
 				incorrect = true;
 				break;
 			}
 		}
 		else if(x==1)
 		{
+			// cout<<"PUT"<<endl;
 			int k = rand()%64 + 1;
 			int v = rand()%255 + 1;
 			string key = random_key(k);
-			string value = random_value(v);
+			string value = random_key(v);
 			db[key] = value;
 			Slice s_key,s_value;
 			strToSlice(key,s_key);
@@ -166,13 +169,14 @@ int main()
 			db_size = db.size();
 			if(check2 == false || value != sliceToStr(check))
 			{
-				cout<<1<<endl;
+				cout<<x<<endl;
 				incorrect = true;
 				break;
 			}
 		}
 		else if(x==2)
 		{
+			// cout<<"DEL"<<endl;
 			int rem = rand()%db_size;
 			map<string,string>:: iterator itr = db.begin();
 			advance(itr,rem);
@@ -186,7 +190,7 @@ int main()
 			bool check2 = kv.get(s_key,s_value);
 			if(check2 == true)
 			{
-				cout<<2<<endl;
+				cout<<x<<endl;
 				incorrect = true;
 				break;
 			}
@@ -200,11 +204,7 @@ int main()
 			for(int i=0;i<rem;i++)itr++;
 			if( itr->first != sliceToStr(s_key) || itr->second != sliceToStr(s_value))
 			{
-				cout<<"KEY: "<<itr->first<<" "<<sliceToStr(s_key)<<" "<<s_key.data<<endl;
-				cout<<"VALUE: "<<itr->second<<" "<<sliceToStr(s_value)<<" "<<s_value.data<<endl;
-				cout<<(itr->second == sliceToStr(s_value))<<" "<<(itr->second != s_value.data)<<endl;
-				cout<<itr->second.size()<<" "<<sliceToStr(s_value).size()<<" "<<(int)s_value.size<<endl;
-				cout<<db[itr->first]<<endl;
+				cout<<x<<endl;
 				incorrect = true;
 				break;
 			}
@@ -223,7 +223,7 @@ int main()
 			bool check2 = kv.get(s_key,s_value);
 			if(check2 == true)
 			{
-				cout<<4<<endl;
+				cout<<x<<endl;
 				incorrect = true;
 				break;
 			}
