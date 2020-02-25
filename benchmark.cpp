@@ -72,12 +72,11 @@ int main()
 		valueSlice.size = (uint8_t)valueLength;
 		valueSlice.data = valueArray;
 
-		// if(db[key].size())
-		// 	cout<<"OVERWRITTEN: "<<key<<" "<<value<<endl;
-		// else if(key.size() <= 2)
-		// 	cout<<"FIRST ADD: "<<key<<" "<<value<<endl;
-
-		db.insert(pair<string, string>(key, value));
+		if(db[key].size())
+			cout<<"OVERWRITTEN: "<<key<<" "<<value<<endl;
+		else if(key.size() <= 2)
+			cout<<"FIRST ADD: "<<key<<" "<<value<<endl;
+		
 		db[key] = value;
 		kv.put(keySlice, valueSlice);
 		db_size++;
