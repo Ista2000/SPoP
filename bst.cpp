@@ -25,20 +25,26 @@ public:
 			nodes[i].right = -1;
 		}
 	}
-	// int inorder(int cur,int &N) // Have to implement properly
-	// {
-	// 	if(nodes[cur].left == -1 && nodes[cur].right == -1){
-	// 		return 0;
-	// 	}
-	// 	if(nodes[cur].left!=-1)
-	// 	{
-	// 		N = inorder(nodes[cur].left,N);
-	// 	}
-	// 	N -= nodes[cur].
-	// 	//inorder stuff
-	// 	if(nodes[cur].right!=-1)
-	// 		N = inorder(nodes[cur].right, N);
-	// }
+	int inorder(int cur, int &N)
+	{
+		if(!sz || !N) return -1;
+		int ret = -1;
+		if(nodes[cur].left != -1)
+			ret = inorder(nodes[cur].left, N);
+
+		if(ret != -1)
+			return ret;
+
+		if(N <= nodes[cur].ends)
+			return cur;
+
+		N -= nodes[cur].ends;
+
+		if(nodes[cur].right!=-1)
+			return inorder(nodes[cur].right, N);
+
+		return -1;
+	}
 	bool insert(int c, int data, int ends) 
 	{
 		int cur = 0;
@@ -181,51 +187,75 @@ public:
 	}
 };
 
-int main()
-{
-	BST bst;
-	bst.insert(0, 5, 0);
-	bst.insert(5, 0, 0);
-	bst.insert(2, 3, 0);
-	bst.insert(4, 1, 0);
-	bst.insert(1, 4, 0);
-	bst.insert(3, 2, 0);
-	for(int i = 0;i<6;i++)
-		cout<<bst.find(i)<<" ";
-	cout<<endl;
-	for(int i = 0;i<6;i++)
-	{
-		bst.remove(i);
-		for(int j = 0;j<6;j++)
-		{
-			cout<<bst.find(j)<<" ";
-			if(bst.find(j)!=-1)
-				cout<<bst.nodes[bst.find(j)].data;
-			cout<<endl;
-		}
-		cout<<endl;
-	}
+// int main()
+// {
+// 	BST bst;
+
+	// Test insert
+
+	// bst.insert(0, 5, 1);
+	// bst.insert(5, 0, 1);
+	// bst.insert(2, 3, 1);
+	// bst.insert(4, 1, 1);
+	// bst.insert(1, 4, 1);
+	// bst.insert(3, 2, 1);
+	// bst.insert(0, 5, 1);
+	// bst.insert(1, 4, 1);
+	// bst.insert(2, 3, 1);
+	// bst.insert(3, 2, 1);
+	// bst.insert(4, 1, 1);
+	// bst.insert(5, 0, 1);
+
+	// Test find
+
+	// for(int i = 0;i<6;i++)
+	// 	cout<<bst.find(i)<<" ";
+	// cout<<endl;
+
+	// Test remove
+
+	// for(int i = 0;i<6;i++)
+	// {
+	// 	bst.remove(i);
+	// 	for(int j = 0;j<6;j++)
+	// 	{
+	// 		cout<<bst.find(j)<<" ";
+	// 		if(bst.find(j)!=-1)
+	// 			cout<<bst.nodes[bst.find(j)].data;
+	// 		cout<<endl;
+	// 	}
+	// 	cout<<endl;
+	// }
 
 
-	bst.insert(0, 5, 0);
-	bst.insert(5, 0, 0);
-	bst.insert(2, 3, 0);
-	bst.insert(4, 1, 0);
-	bst.insert(1, 4, 0);
-	bst.insert(3, 2, 0);
-	for(int i = 0;i<6;i++)
-		cout<<bst.find(i)<<" ";
-	cout<<endl;
-	for(int i = 0;i<6;i++)
-	{
-		bst.remove(i);
-		for(int j = 0;j<6;j++)
-		{
-			cout<<bst.find(j)<<" ";
-			if(bst.find(j)!=-1)
-				cout<<bst.nodes[bst.find(j)].data;
-			cout<<endl;
-		}
-		cout<<endl;
-	}
-}
+	// bst.insert(0, 5, 1);
+	// bst.insert(5, 0, 1);
+	// bst.insert(2, 3, 1);
+	// bst.insert(4, 1, 1);
+	// bst.insert(1, 4, 1);
+	// bst.insert(3, 2, 1);
+	// for(int i = 0;i<6;i++)
+	// 	cout<<bst.find(i)<<" ";
+	// cout<<endl;
+	// for(int i = 0;i<6;i++)
+	// {
+	// 	bst.remove(i);
+	// 	for(int j = 0;j<6;j++)
+	// 	{
+	// 		cout<<bst.find(j)<<" ";
+	// 		if(bst.find(j)!=-1)
+	// 			cout<<bst.nodes[bst.find(j)].data;
+	// 		cout<<endl;
+	// 	}
+	// 	cout<<endl;
+	// }
+
+	// Test inorder
+
+// 	int N = 0;
+// 	int node = bst.inorder(0, N);
+// 	if(node != -1)
+// 		cout<<bst.nodes[node].c<<endl;
+
+// 	return 0;
+// }
