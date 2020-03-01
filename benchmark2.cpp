@@ -1,6 +1,6 @@
 #include<bits/stdc++.h>
 #include <time.h>
-#include "v3.cpp"
+#include "v1.cpp"
 using namespace std;
 
 string sliceToStr(Slice& a) {
@@ -176,7 +176,6 @@ int main()
 		}
 		else if(x==2)
 		{
-			// cout<<"DEL"<<endl;
 			int rem = rand()%db_size;
 			map<string,string>:: iterator itr = db.begin();
 			advance(itr,rem);
@@ -190,6 +189,7 @@ int main()
 			bool check2 = kv.get(s_key,s_value);
 			if(check2 == true)
 			{
+				// cout<<"UMM: "<<x<<" "<<check<<" "<<key<<endl;
 				cout<<x<<endl;
 				incorrect = true;
 				break;

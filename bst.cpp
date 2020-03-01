@@ -77,12 +77,20 @@ public:
 		sz++;
 		return true;
 	}
+	bool change_ends(int c, int change)
+	{
+		int cur = find(c);
+		if(cur == -1) return false;
+		nodes[cur].ends += change;
+		return true;
+	}
 	int find(int c) 
 	{
 		if(!sz) return -1;
 		int cur = 0;
 		while(cur != -1) 
 		{
+			cout<<"BST: "<<cur<<" "<<c<<" "<<nodes[cur].c<<" "<<nodes[cur].left<<" "<<nodes[cur].right<<endl;
 			if(nodes[cur].c == c)
 				return cur;
 			if(nodes[cur].c < c)
@@ -108,7 +116,7 @@ public:
 		}
 		return -1;
 	}
-	bool remove(int c)
+	bool remove(int c, int &nxt)
 	{
 		if(!sz) return false;
 		if(sz == 1)
@@ -120,6 +128,7 @@ public:
 			free_head = 0;
 		}
 		int cur = find(c);
+		nxt = nodes[cur].data;
 		if(cur == -1)
 			return false;
 

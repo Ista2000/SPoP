@@ -48,7 +48,7 @@ kvStore::kvStore(uint64_t max_entries)
 	nodes = (TrieNode *)calloc(128, sizeof(TrieNode));
 	size = 128;
 	nodes[0].arr[52] = -1;
-	for (int i = 0; i < 127; i++)
+	for (int i = 1; i < 127; i++)
 		nodes[i].arr[52] = i + 1;
 	free_head = 1;
 	free_tail = 127;
