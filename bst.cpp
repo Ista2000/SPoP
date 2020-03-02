@@ -90,7 +90,7 @@ public:
 		int cur = 0;
 		while(cur != -1) 
 		{
-			cout<<"BST: "<<cur<<" "<<c<<" "<<nodes[cur].c<<" "<<nodes[cur].left<<" "<<nodes[cur].right<<endl;
+			// cout<<"BST: "<<cur<<" "<<c<<" "<<nodes[cur].c<<" "<<nodes[cur].left<<" "<<nodes[cur].right<<endl;
 			if(nodes[cur].c == c)
 				return cur;
 			if(nodes[cur].c < c)
