@@ -11,14 +11,15 @@ struct BSTNode {
 
 class BST {
 public:
-	BSTNode nodes[52];
+	BSTNode *nodes;
 	int free_head, free_tail, sz;
 	BST() 
 	{
+		nodes = (BSTNode*) malloc(53 * sizeof(BSTNode));
 		free_head = 0;
-		free_tail = 51;
+		free_tail = 52;
 		sz = 0;
-		for(int i = 0;i<51;i++)
+		for(int i = 0;i<52;i++)
 		{
 			nodes[i].data = i+1;
 			nodes[i].left = -1;
@@ -45,21 +46,55 @@ public:
 
 		return -1;
 	}
+	void debug(vector<int> &v, int cur = 0)
+	{
+		if(cur==-1)return;
+		debug(v, nodes[cur].left);
+		v.push_back(nodes[cur].c);
+		cout<<"DEBUG: ";
+		if(nodes[cur].left==-1)
+			cout<<"E ";
+		else
+			cout<<nodes[nodes[cur].left].c<<" ";
+		cout<<v.back()<<" ";
+		if(nodes[cur].right==-1)
+			cout<<"E ";
+		else
+			cout<<nodes[nodes[cur].right].c<<" ";
+		cout<<endl;
+
+		debug(v, nodes[cur].right);
+	}
 	bool insert(int c, int data, int ends) 
 	{
+		// cout<<"BST INSERT BEFORE: "<<free_head<<" "<<free_tail<<" "<<sz<<endl;
+		// vector<int> v;
+		// debug(v);
+		// for(int i: v)
+		// 	cout<<i<<" ";
+		// cout<<endl;
+		// for(int i = 1;i<v.size();i++)
+		// 	if(v[i-1] > v[i])
+		// 		exit(0);
 		int cur = 0;
 		while(1) {
 			if(!sz)
 				break;
 			if(nodes[cur].c == c)
+			{
+				nodes[cur].data = data;
+				nodes[cur].ends = ends;
 				return false;
+			}
 			int ncur;
 			if(nodes[cur].c < c)
 				ncur = nodes[cur].right;
 			else
 				ncur = nodes[cur].left;
+			// cout<<"BST INSERT: "<<cur<<" "<<ncur<<endl;
 			if(ncur == -1)
 			{
+				// cout<<"INSIDE -1: "<<ncur<<" "<<free_head<<endl;
 				ncur = free_head;
 				if(nodes[cur].c < c)
 					nodes[cur].right = ncur;
@@ -71,10 +106,20 @@ public:
 			cur = ncur;
 		}
 		free_head = nodes[cur].data;
+		// cout<<"BST INSERT AFTER: "<<free_head<<" "<<free_tail<<" "<<sz<<endl;
 		nodes[cur].c = c;
 		nodes[cur].data = data;
 		nodes[cur].ends = ends;
+		nodes[cur].left = nodes[cur].right = -1;
 		sz++;
+		// v.clear();
+		// debug(v);
+		// for(int i: v)
+		// 	cout<<i<<" ";
+		// cout<<endl;
+		// for(int i = 1;i<v.size();i++)
+		// 	if(v[i-1] > v[i])
+		// 		exit(0);
 		return true;
 	}
 	bool change_ends(int c, int change)
@@ -90,7 +135,7 @@ public:
 		int cur = 0;
 		while(cur != -1) 
 		{
-			cout<<"BST: "<<cur<<" "<<c<<" "<<nodes[cur].c<<" "<<nodes[cur].left<<" "<<nodes[cur].right<<endl;
+			// cout<<"BST: "<<cur<<" "<<c<<" "<<nodes[cur].c<<" "<<nodes[cur].left<<" "<<nodes[cur].right<<endl;	
 			if(nodes[cur].c == c)
 				return cur;
 			if(nodes[cur].c < c)
@@ -116,8 +161,9 @@ public:
 		}
 		return -1;
 	}
-	bool remove(int c, int &nxt)
-	{
+	bool remove_bst(int c)
+	{	
+		// cout<<"DELETE"<<endl;
 		if(!sz) return false;
 		if(sz == 1)
 		{
@@ -126,9 +172,10 @@ public:
 			nodes[0].right = -1;
 			nodes[0].data = free_head;
 			free_head = 0;
+			return true;
 		}
 		int cur = find(c);
-		nxt = nodes[cur].data;
+		// cout<<"BST: "<<c<<" "<<cur<<endl;
 		if(cur == -1)
 			return false;
 
@@ -146,23 +193,6 @@ public:
 			return true;
 		}
 
-		while(nodes[cur].left != -1 && nodes[cur].right != -1)
-		{
-			int ncur = nodes[cur].left;
-			nodes[cur].data = nodes[ncur].data;
-			nodes[cur].ends = nodes[ncur].data;
-			nodes[cur].c = nodes[ncur].c;
-			if(nodes[ncur].left == -1 && nodes[ncur].right == -1)
-			{
-				nodes[ncur].data = 0;
-				nodes[free_tail].data = ncur;
-				free_tail = ncur;
-				nodes[cur].left = -1;
-				sz--;
-				return true;
-			}
-			cur = ncur;
-		}
 		if(nodes[cur].left == -1)
 		{
 			int ncur =  nodes[cur].right;
@@ -176,22 +206,71 @@ public:
 			nodes[ncur].data = 0;
 			nodes[free_tail].data = ncur;
 			free_tail = ncur;
+			sz--;
 		}
 		else
 		{
-			int ncur =  nodes[cur].left;
-			nodes[cur].left = nodes[ncur].left;
-			nodes[cur].right = nodes[ncur].right;
-			nodes[cur].c = nodes[ncur].c;
-			nodes[cur].data = nodes[ncur].data;
-			nodes[cur].ends = nodes[ncur].ends;
-			nodes[ncur].left = -1;
-			nodes[ncur].right = -1;
-			nodes[ncur].data = 0;
-			nodes[free_tail].data = ncur;
-			free_tail = ncur;
+			int ncur = nodes[cur].left;
+			while(nodes[ncur].right != -1)
+				ncur = nodes[ncur].right;
+
+			int character = nodes[ncur].c;
+			int data = nodes[ncur].data;
+			int ends = nodes[ncur].ends;
+
+			remove_bst(nodes[ncur].c);
+
+			nodes[cur].c = character;
+			nodes[cur].data = data;
+			nodes[cur].ends = ends;
 		}
-		sz--;
+
+
+		// while(nodes[cur].left != -1 && nodes[cur].right != -1)
+		// {
+		// 	int ncur = nodes[cur].left;
+		// 	nodes[cur].data = nodes[ncur].data;
+		// 	nodes[cur].ends = nodes[ncur].ends;
+		// 	nodes[cur].c = nodes[ncur].c;
+		// 	if(nodes[ncur].left == -1 && nodes[ncur].right == -1)
+		// 	{
+		// 		nodes[ncur].data = 0;
+		// 		nodes[free_tail].data = ncur;
+		// 		free_tail = ncur;
+		// 		nodes[cur].left = -1;
+		// 		sz--;
+		// 		return true;
+		// 	}
+		// 	cur = ncur;
+		// }
+		// if(nodes[cur].left == -1)
+		// {
+		// 	int ncur =  nodes[cur].right;
+		// 	nodes[cur].left = nodes[ncur].left;
+		// 	nodes[cur].right = nodes[ncur].right;
+		// 	nodes[cur].c = nodes[ncur].c;
+		// 	nodes[cur].data = nodes[ncur].data;
+		// 	nodes[cur].ends = nodes[ncur].ends;
+		// 	nodes[ncur].left = -1;
+		// 	nodes[ncur].right = -1;
+		// 	nodes[ncur].data = 0;
+		// 	nodes[free_tail].data = ncur;
+		// 	free_tail = ncur;
+		// }
+		// else
+		// {
+		// 	int ncur =  nodes[cur].left;
+		// 	nodes[cur].left = nodes[ncur].left;
+		// 	nodes[cur].right = nodes[ncur].right;
+		// 	nodes[cur].c = nodes[ncur].c;
+		// 	nodes[cur].data = nodes[ncur].data;
+		// 	nodes[cur].ends = nodes[ncur].ends;
+		// 	nodes[ncur].left = -1;
+		// 	nodes[ncur].right = -1;
+		// 	nodes[ncur].data = 0;
+		// 	nodes[free_tail].data = ncur;
+		// 	free_tail = ncur;
+		// }
 		return true;
 	}
 };

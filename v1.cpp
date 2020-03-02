@@ -138,14 +138,14 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 		{
 			nodes[cur].end = false;
 			nodes[cur].ends--;
-			if (!nodes[cur].ends)
-			{
-				for (int i = 0; i < 52; i++)
-					nodes[cur].arr[i] = 0;
-				nodes[free_tail].arr[52] = cur;
-				nodes[cur].arr[52] = 0;
-				free_tail = cur;
-			}
+			// if (!nodes[cur].ends)
+			// {
+			// 	for (int i = 0; i < 52; i++)
+			// 		nodes[cur].arr[i] = 0;
+			// 	nodes[free_tail].arr[52] = cur;
+			// 	nodes[cur].arr[52] = 0;
+			// 	free_tail = cur;
+			// }
 			return true;
 		}
 		return false;
@@ -162,17 +162,19 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 	bool ret = del(key, i + 1, cur);
 	nodes[old_cur].ends -= ret;
 
-	if (!nodes[old_cur].ends && !nodes[old_cur].end) // second if might be unnecessary
+	if (!nodes[cur].ends && !nodes[cur].end) // second if might be unnecessary
 	{
 		for (int i = 0; i < 52; i++)
-			nodes[old_cur].arr[i] = 0;
+			nodes[cur].arr[i] = 0;
 
-		nodes[free_tail].arr[52] = old_cur;
-		nodes[old_cur].arr[52] = 0;
-		free_tail = old_cur;
+		nodes[free_tail].arr[52] = cur;
+		nodes[cur].arr[52] = 0;
+		free_tail = cur;
 
-		if (old_cur == 0) // might be unnecessary
-			nodes[old_cur].arr[52] = -1;
+		nodes[old_cur].arr[x] = 0;
+
+		if (cur == 0) // might be unnecessary
+			nodes[cur].arr[52] = -1;
 	}
 
 	return ret;

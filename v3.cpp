@@ -50,6 +50,7 @@ kvStore::kvStore(uint64_t max_entries)
 	nodes = (TrieNode *)calloc(128, sizeof(TrieNode));
 	size = 128;
 	nodes[0].nxt = -1;
+	nodes[0].bst = *((BST*) calloc(1, sizeof(BST)));
 	nodes[0].bst = BST();
 	for (int i = 1; i < 127; i++)
 		nodes[i].nxt = i + 1;
@@ -79,7 +80,10 @@ bool kvStore::get(Slice &key, Slice &value)
 	{
 		int x;
 		encode(x, key.data[i]);
+		// cout<<"GET: "<<cur<<" "<<x<<endl;
+		// cout<<"FREE HEAD IN GET: "<<nodes[0].bst.free_head<<" "<<nodes[0].bst.free_tail<<endl;
 		int node = nodes[cur].bst.find(x);
+		// cout<<node<<endl;
 		if (node == -1)
 			return false;
 		cur = nodes[cur].bst.nodes[node].data;
@@ -112,21 +116,33 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 	int old_cur = cur;
 	int x;
 	encode(x, key.data[i]);
+	// cout<<"PUT: "<<cur<<" "<<x<<endl;
 	// cout<<"TRIE: "<<i<<" "<<cur<<" "<<x<<" "<<nodes[0].bst.nodes[0].right<<" "<<nodes[0].bst.nodes[0].left<<endl;
 
 	int node = nodes[cur].bst.find(x);
+	// cout<<node<<endl;
 		
 	if (node != -1)
 		cur = nodes[cur].bst.nodes[node].data;
 	else
 	{
 		// nodes[cur].arr[x] = free_head;
+		// cout<<nodes[cur].bst.sz<<endl;
+		// cout<<nodes[cur].bst.insert(x, free_head, 0)<<endl;
+		// cout<<nodes[cur].bst.sz<<endl;
+		// cout<<"AFTER PUT: "<<cur<<" "<<nodes[cur].bst.find(x)<<endl;
 		nodes[cur].bst.insert(x, free_head, 0);
 		cur = free_head;
 		free_head = nodes[cur].nxt;
 		nodes[cur].nxt = -1;
 		nodes[cur].bst = BST();
+		// cout<<"TRIE PUT: "<<nodes[cur].bst.free_head<<" "<<nodes[cur].bst.free_tail<<endl;
 	}
+
+
+	// cout<<"FREE HEAD IN PUT: "<<nodes[0].bst.free_head<<" "<<nodes[0].bst.free_tail<<endl;
+	// if(!nodes[0].bst.free_head)
+	// 	cout<<"LULLI"<<endl, exit(0);
 
 	if (free_head == free_tail)
 		resize();
@@ -140,22 +156,20 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 
 bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 {
-	cout<<"TRIE: "<<cur<<endl;
 	if (i == key.size)
 	{
 		if (nodes[cur].end)
 		{
 			nodes[cur].end = false;
 			// nodes[cur].ends--;
-			cout<<"IN TRIE: "<<cur<<" "<<nodes[cur].bst.sz<<endl;
-			if (!nodes[cur].bst.sz)
-			{
-				// for (int i = 0; i < 52; i++)
-				// 	nodes[cur].arr[i] = 0;
-				nodes[free_tail].nxt = cur;
-				nodes[cur].nxt = 0;
-				free_tail = cur;
-			}
+			// if (!nodes[cur].bst.sz)
+			// {
+			// 	// for (int i = 0; i < 52; i++)
+			// 	// 	nodes[cur].arr[i] = 0;
+			// 	nodes[free_tail].nxt = cur;
+			// 	nodes[cur].nxt = 0;
+			// 	free_tail = cur;
+			// }
 			return true;
 		}
 		return false;
@@ -164,29 +178,52 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 	int x;
 	int old_cur = cur;
 	encode(x, key.data[i]);
-	int nxt = -1;
-	cout<<"BEFORE remove: "<<old_cur<<endl;
-	if (nodes[cur].bst.remove(x, nxt))
-		cout<<"TRIE NEXT: "<<nxt<<endl, cur = nxt;
+	int nxt = nodes[cur].bst.find(x);
+
+	if (nxt != -1)
+		cur = nodes[cur].bst.nodes[nxt].data;
 	else
 		return false;
 
-	cout<<"AFTER TRIE: "<<old_cur<<endl;
 
 	bool ret = del(key, i + 1, cur);
 	nodes[old_cur].bst.change_ends(x, -ret);
 
-	if (!nodes[old_cur].bst.sz && !nodes[old_cur].end)
+	if (!nodes[cur].bst.sz && !nodes[cur].end)
 	{
 		// for (int i = 0; i < 52; i++)
 		// 	nodes[old_cur].arr[i] = 0;
 
-		nodes[free_tail].nxt = old_cur;
-		nodes[old_cur].nxt = 0;
-		free_tail = old_cur;
+		nodes[cur].bst = BST();
 
-		if (old_cur == 0) // might be unnecessary
-			nodes[old_cur].nxt = -1;
+		nodes[free_tail].nxt = cur;
+		nodes[cur].nxt = 0;
+		free_tail = cur;
+		// cout<<"TRIE: "<<x<<" "<<nxt<<" "<<nodes[old_cur].bst.find(x)<<endl;
+		// vector<int> v;
+		// nodes[old_cur].bst.debug(v);
+		// for(int i: v)
+		// 	cout<<i<<" ";
+		// cout<<endl;
+		// for(int i = 1;i<v.size();i++)
+		// 	if(v[i-1] > v[i])
+		// 		exit(0);
+
+		assert(nodes[old_cur].bst.remove_bst(x));
+
+		// v.clear();
+		// nodes[old_cur].bst.debug(v);
+		// for(int i: v)
+		// 	cout<<i<<" ";
+		// cout<<endl;
+		// for(int i = 1;i<v.size();i++)
+		// 	if(v[i-1] > v[i])
+		// 		exit(0);
+
+		// cout<<"AFTER: "<<nodes[old_cur].bst.find(x)<<endl;
+
+		// if (old_cur == 0) // might be unnecessary
+		// 	nodes[old_cur].nxt = -1;
 	}
 
 	return ret;

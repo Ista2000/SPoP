@@ -1,6 +1,6 @@
 #include<bits/stdc++.h>
 #include <time.h>
-#include "v1.cpp"
+#include "v3.cpp"
 using namespace std;
 
 string sliceToStr(Slice& a) {
@@ -136,6 +136,7 @@ int main()
 	for(int i=0;i<10000;i++)
 	{
 		int x = rand()%5;
+		cout<<i<<endl;
 		if(x==0)
 		{
 			// cout<<"GET"<<endl;
@@ -146,7 +147,7 @@ int main()
 			map<string,string>:: iterator itr = db.find(key);
 			if((ans==false && itr != db.end()) || (ans==true && itr->second != sliceToStr(s_value) ))
 			{
-				cout<<x<<endl;
+				cout<<x<<" "<<ans<<" "<<itr->first<<endl;
 				incorrect = true;
 				break;
 			}
@@ -169,7 +170,7 @@ int main()
 			db_size = db.size();
 			if(check2 == false || value != sliceToStr(check))
 			{
-				cout<<x<<endl;
+				cout<<x<<" "<<check2<<" "<<key<<" "<<value<<" "<<db[key]<<endl;
 				incorrect = true;
 				break;
 			}
@@ -189,45 +190,44 @@ int main()
 			bool check2 = kv.get(s_key,s_value);
 			if(check2 == true)
 			{
-				// cout<<"UMM: "<<x<<" "<<check<<" "<<key<<endl;
-				cout<<x<<endl;
+				cout<<"UMM: "<<x<<" "<<check<<" "<<key<<endl;
 				incorrect = true;
 				break;
 			}
 		}
-		else if(x==3)
-		{
-			int rem = rand()%db_size;
-			Slice s_key,s_value;
-			bool check = kv.get(rem+1,s_key,s_value);
-			map<string,string>:: iterator itr = db.begin();
-			for(int i=0;i<rem;i++)itr++;
-			if( itr->first != sliceToStr(s_key) || itr->second != sliceToStr(s_value))
-			{
-				cout<<x<<endl;
-				incorrect = true;
-				break;
-			}
-		}
-		else if(x==4)
-		{
-			int rem = rand()%db_size;
-			map<string,string>:: iterator itr = db.begin();
-			for(int i=0;i<rem;i++)itr++;
-			string key = itr->first;
-			bool check = kv.del(rem+1);
-			db.erase(itr);
-			db_size--;
-			Slice s_key,s_value;
-			strToSlice(key,s_key);
-			bool check2 = kv.get(s_key,s_value);
-			if(check2 == true)
-			{
-				cout<<x<<endl;
-				incorrect = true;
-				break;
-			}
-		}
+	// 	else if(x==3)
+	// 	{
+	// 		int rem = rand()%db_size;
+	// 		Slice s_key,s_value;
+	// 		bool check = kv.get(rem+1,s_key,s_value);
+	// 		map<string,string>:: iterator itr = db.begin();
+	// 		for(int i=0;i<rem;i++)itr++;
+	// 		if( itr->first != sliceToStr(s_key) || itr->second != sliceToStr(s_value))
+	// 		{
+	// 			cout<<x<<endl;
+	// 			incorrect = true;
+	// 			break;
+	// 		}
+	// 	}
+	// 	else if(x==4)
+	// 	{
+	// 		int rem = rand()%db_size;
+	// 		map<string,string>:: iterator itr = db.begin();
+	// 		for(int i=0;i<rem;i++)itr++;
+	// 		string key = itr->first;
+	// 		bool check = kv.del(rem+1);
+	// 		db.erase(itr);
+	// 		db_size--;
+	// 		Slice s_key,s_value;
+	// 		strToSlice(key,s_key);
+	// 		bool check2 = kv.get(s_key,s_value);
+	// 		if(check2 == true)
+	// 		{
+	// 			cout<<x<<endl;
+	// 			incorrect = true;
+	// 			break;
+	// 		}
+	// 	}
 	}
 	if(incorrect == true)
 	{
