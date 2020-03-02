@@ -16,7 +16,7 @@ void strToSlice(string l, Slice& a) {
     a.size = l.length();
     a.data = (char*)malloc(a.size);
     strncpy(a.data, l.c_str(), a.size);
-    a.data[a.size] = 0;
+    // a.data[a.size] = 0;
 }
 
 string random_key(int stringLength){
@@ -119,7 +119,7 @@ void *myThreadFun(void *vargp)
 int main()
 {
 	srand(time(0));
-	for(int i=0;i<10000;i++)
+	for(int i=0;i<100000;i++)
 	{
 		string key = random_key(rand()%64 + 1);
 		string value = random_key(rand()%255 + 1);
@@ -136,7 +136,7 @@ int main()
 	for(int i=0;i<10000;i++)
 	{
 		int x = rand()%5;
-		cout<<i<<endl;
+		// cout<<i<<endl;
 		if(x==0)
 		{
 			// cout<<"GET"<<endl;
