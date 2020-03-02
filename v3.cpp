@@ -101,7 +101,7 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 	{
 		nodes[cur].data = (Slice *)malloc(sizeof(value));
 		memcpy(nodes[cur].data, &value, sizeof(value));
-		nodes[cur].data->data[nodes[cur].data->size] = '\0';
+		// nodes[cur].data->data[nodes[cur].data->size] = '\0';
 		// nodes[cur].data = &value;
 
 		if (!nodes[cur].end)
