@@ -15,19 +15,38 @@ class BST
 {
 public:
 	BSTNode *nodes;
-	int free_head, free_tail, sz;
+	int free_head, free_tail, sz, size;
 	BST()
 	{
-		nodes = (BSTNode *)malloc(53 * sizeof(BSTNode));
+		size = 2;
+		nodes = (BSTNode *)malloc(size * sizeof(BSTNode));
 		free_head = 0;
-		free_tail = 52;
+		free_tail = size - 1;
 		sz = 0;
-		for (int i = 0; i < 52; i++)
+		for (int i = 0; i < size - 1; i++)
 		{
 			nodes[i].data = i + 1;
 			nodes[i].left = -1;
 			nodes[i].right = -1;
 		}
+	}
+	bool resize()
+	{
+		int old_size = size;
+		size <<= 1;
+		BSTNode *new_nodes = (BSTNode *)calloc(size, sizeof(BSTNode));
+		memcpy(new_nodes, nodes, sizeof(BSTNode) * old_size);
+		delete[] nodes;
+		nodes = new_nodes;
+		nodes[free_tail].data = old_size;
+		for (int i = old_size; i < size - 1; i++)
+		{
+			nodes[i].data = i + 1;
+			nodes[i].left = -1;
+			nodes[i].right = -1;
+		}
+		free_tail = size - 1;
+		return true;
 	}
 	int inorder(int &N, int cur = 0)
 	{
@@ -118,6 +137,8 @@ public:
 		nodes[cur].ends = ends;
 		nodes[cur].left = nodes[cur].right = -1;
 		sz++;
+		if(size == sz + 1)
+			resize();
 		// v.clear();
 		// debug(v);
 		// for(int i: v)
