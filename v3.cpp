@@ -297,69 +297,110 @@ bool kvStore::get(int N, Slice &key, Slice &value)
 }
 bool kvStore::del(int N, int cur = 0)
 {
-	// 	// cout << "DEL: " << cur << " " << N << " " << nodes[cur].end << " " << nodes[cur].ends << endl;
-	// 	if (N == 1 && nodes[cur].end)
-	// 	{
-	// 		nodes[cur].end = false;
-	// 		// cout << "BASE: " << nodes[cur].ends << " " << endl;
-	// 		nodes[cur].ends--;
-	// 		if (!nodes[cur].ends)
-	// 		{
-	// 			for (int i = 0; i < 52; i++)
-	// 				nodes[cur].arr[i] = 0;
-	// 			nodes[free_tail].nxt = cur;
-	// 			nodes[cur].nxt = 0;
-	// 			free_tail = cur;
-	// 		}
-	// 		return true;
-	// 	}
+	// cout << "DEL: " << cur << " " << N << " " << nodes[cur].end<< endl;
+	// std::vector<int> v;
+	// nodes[cur].bst.debug(v);
+	// for(int i: v)
+	// 	cout<<i<<" ";
+	// cout<<endl;
+	// for(int i = 1;i<v.size();i++)
+	// 	if(v[i-1] > v[i])
+	// 		exit(0);
+	if (N == 1 && nodes[cur].end)
+	{
+		nodes[cur].end = false;
+		// cout << "BASE: " << nodes[cur].ends << " " << endl;
+		// nodes[cur].ends--;
+		// if (!nodes[cur].ends)
+		// {
+		// 	// for (int i = 0; i < 52; i++)
+		// 	// 	nodes[cur].arr[i] = 0;
+		// 	nodes[cur].bst = BST();
+		// 	nodes[free_tail].nxt = cur;
+		// 	nodes[cur].nxt = 0;
+		// 	free_tail = cur;
+		// }
+		return true;
+	}
 
-	// 	N -= nodes[cur].end;
+	N -= nodes[cur].end;
 
-	// 	int old_cur = cur, i;
-	// 	for (i = 0; i < 52; i++)
+	int old_cur = cur;
+	int nxt = nodes[cur].bst.inorder(N);
+	if (nxt == -1)
+		return false;
+
+	int x = nodes[cur].bst.nodes[nxt].c;
+	cur = nodes[cur].bst.nodes[nxt].data;
+
+	bool ret = del(N, cur);
+	nodes[old_cur].bst.change_ends(x, -ret);
+
+	if (!nodes[cur].bst.sz && !nodes[cur].end)
+	{
+		// for (int i = 0; i < 52; i++)
+		// 	nodes[old_cur].arr[i] = 0;
+
+		nodes[cur].bst = BST();
+
+		nodes[free_tail].nxt = cur;
+		nodes[cur].nxt = 0;
+		free_tail = cur;
+
+		assert(nodes[old_cur].bst.remove_bst(x));
+	}
+	// v.clear();
+	// nodes[cur].bst.debug(v);
+	// for(int i: v)
+	// 	cout<<i<<" ";
+	// cout<<endl;
+	// for(int i = 1;i<v.size();i++)
+	// 	if(v[i-1] > v[i])
+	// 		exit(0);
+
+	// for (i = 0; i < 52; i++)
+	// {
+	// 	if (!nodes[cur].arr[i])
 	// 	{
-	// 		if (!nodes[cur].arr[i])
-	// 		{
-	// 			if (i == 51)
-	// 				return false;
-	// 			continue;
-	// 		}
-	// 		// cout << i << " " << N << endl;
-	// 		if (nodes[nodes[cur].arr[i]].ends < N)
-	// 			N -= nodes[nodes[cur].arr[i]].ends;
-	// 		else
-	// 		{
-	// 			old_cur = cur;
-	// 			cur = nodes[cur].arr[i];
-	// 			break;
-	// 		}
 	// 		if (i == 51)
 	// 			return false;
+	// 		continue;
 	// 	}
-	// 	// cout << old_cur << endl;
-	// 	char c;
-	// 	if (i < 26)
-	// 		c = (char(i + 'A'));
+	// 	// cout << i << " " << N << endl;
+	// 	if (nodes[nodes[cur].arr[i]].ends < N)
+	// 		N -= nodes[nodes[cur].arr[i]].ends;
 	// 	else
-	// 		c = (char)(i + 'a' - 26);
-	// 	// cout << c << endl;
-	// 	bool ret = del(N, cur);
-
-	// 	nodes[old_cur].ends -= ret;
-	// 	if (ret && nodes[cur].ends == 0)
-	// 		nodes[old_cur].arr[i] = 0;
-	// 	if (!nodes[old_cur].ends && !nodes[old_cur].end) // second if might be unnecessary
 	// 	{
-	// 		for (int i = 0; i < 52; i++)
-	// 			nodes[old_cur].arr[i] = 0;
-
-	// 		nodes[free_tail].nxt = old_cur;
-	// 		nodes[old_cur].nxt = 0;
-	// 		free_tail = old_cur;
-
-	// 		if (old_cur == 0) // might be unnecessary
-	// 			nodes[old_cur].nxt = -1;
+	// 		old_cur = cur;
+	// 		cur = nodes[cur].arr[i];
+	// 		break;
 	// 	}
-	// 	return ret;
+	// 	if (i == 51)
+	// 		return false;
+	// }
+	// // cout << old_cur << endl;
+	// char c;
+	// if (i < 26)
+	// 	c = (char(i + 'A'));
+	// else
+	// 	c = (char)(i + 'a' - 26);
+	// // cout << c << endl;
+	// bool ret = del(N, cur);
+
+	// nodes[old_cur].ends -= ret;
+	// if (ret && nodes[cur].ends == 0)
+	// 	nodes[old_cur].arr[i] = 0;
+	// if (!nodes[old_cur].ends && !nodes[old_cur].end) // second if might be unnecessary
+	// {
+	// 	for (int i = 0; i < 52; i++)
+	// 		nodes[old_cur].arr[i] = 0;
+
+	// 	nodes[free_tail].nxt = old_cur;
+	// 	nodes[old_cur].nxt = 0;
+	// 	free_tail = old_cur;
+
+	// 	if (old_cur == 0) // might be unnecessary
+	// 		nodes[old_cur].nxt = -1;
+	// }
+	return ret;
 }

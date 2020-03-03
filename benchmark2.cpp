@@ -119,7 +119,7 @@ void *myThreadFun(void *vargp)
 int main()
 {
 	srand(time(0));
-	for(int i=0;i<100000;i++)
+	for(int i=0;i<10000;i++)
 	{
 		string key = random_key(rand()%64 + 1);
 		string value = random_key(rand()%255 + 1);
@@ -136,7 +136,7 @@ int main()
 	for(int i=0;i<10000;i++)
 	{
 		int x = rand()%5;
-		// cout<<i<<endl;
+		cout<<i/1000<<endl;
 		if(x==0)
 		{
 			// cout<<"GET"<<endl;
@@ -195,39 +195,39 @@ int main()
 				break;
 			}
 		}
-	// 	else if(x==3)
-	// 	{
-	// 		int rem = rand()%db_size;
-	// 		Slice s_key,s_value;
-	// 		bool check = kv.get(rem+1,s_key,s_value);
-	// 		map<string,string>:: iterator itr = db.begin();
-	// 		for(int i=0;i<rem;i++)itr++;
-	// 		if( itr->first != sliceToStr(s_key) || itr->second != sliceToStr(s_value))
-	// 		{
-	// 			cout<<x<<endl;
-	// 			incorrect = true;
-	// 			break;
-	// 		}
-	// 	}
-	// 	else if(x==4)
-	// 	{
-	// 		int rem = rand()%db_size;
-	// 		map<string,string>:: iterator itr = db.begin();
-	// 		for(int i=0;i<rem;i++)itr++;
-	// 		string key = itr->first;
-	// 		bool check = kv.del(rem+1);
-	// 		db.erase(itr);
-	// 		db_size--;
-	// 		Slice s_key,s_value;
-	// 		strToSlice(key,s_key);
-	// 		bool check2 = kv.get(s_key,s_value);
-	// 		if(check2 == true)
-	// 		{
-	// 			cout<<x<<endl;
-	// 			incorrect = true;
-	// 			break;
-	// 		}
-	// 	}
+		else if(x==3)
+		{
+			int rem = rand()%db_size;
+			Slice s_key,s_value;
+			bool check = kv.get(rem+1,s_key,s_value);
+			map<string,string>:: iterator itr = db.begin();
+			for(int i=0;i<rem;i++)itr++;
+			if( itr->first != sliceToStr(s_key) || itr->second != sliceToStr(s_value))
+			{
+				cout<<x<<endl;
+				incorrect = true;
+				break;
+			}
+		}
+		else if(x==4)
+		{
+			int rem = rand()%db_size;
+			map<string,string>:: iterator itr = db.begin();
+			for(int i=0;i<rem;i++)itr++;
+			string key = itr->first;
+			bool check = kv.del(rem+1);
+			db.erase(itr);
+			db_size--;
+			Slice s_key,s_value;
+			strToSlice(key,s_key);
+			bool check2 = kv.get(s_key,s_value);
+			if(check2 == true)
+			{
+				cout<<x<<endl;
+				incorrect = true;
+				break;
+			}
+		}
 	}
 	if(incorrect == true)
 	{
