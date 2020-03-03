@@ -3,6 +3,7 @@
 #include "bst.cpp"
 using namespace std;
 
+mutex head, tail;
 struct Slice
 {
 	uint8_t size;
@@ -59,16 +60,22 @@ kvStore::kvStore(uint64_t max_entries)
 
 bool kvStore::resize()
 {
+	// cout << free_head << " " << free_tail << endl;
 	int old_size = size;
 	size <<= 1;
 	TrieNode *new_nodes = (TrieNode *)calloc(size, sizeof(TrieNode));
 	memcpy(new_nodes, nodes, sizeof(TrieNode) * old_size);
-	delete[] nodes;
+	// delete[] nodes;
 	nodes = new_nodes;
+	tail.lock();
 	nodes[free_tail].nxt = old_size;
+	tail.unlock();
 	for (int i = old_size; i < size - 1; i++)
 		nodes[i].nxt = i + 1;
+	tail.lock();
+	assert(size != 0);
 	free_tail = size - 1;
+	tail.unlock();
 	return true;
 }
 
@@ -119,18 +126,29 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 		cur = nodes[cur].bst.nodes[node].data;
 	else
 	{
+		head.lock();
 		nodes[cur].bst.insert(x, free_head, 0);
 		cur = free_head;
+		head.unlock();
 		if (cur < 0)
 			return false;
+		head.lock();
 		free_head = nodes[cur].nxt;
+		head.unlock();
 		nodes[cur].nxt = -1;
 		nodes[cur].bst = BST();
 	}
 
+	head.lock();
+	tail.lock();
 	if (free_head == free_tail)
+	{
+		head.unlock();
+		tail.unlock();
 		resize();
-
+	}
+	head.unlock();
+	tail.unlock();
 	bool ret = put(key, value, i + 1, cur);
 	nodes[old_cur].bst.change_ends(x, 1 - ret);
 	return ret;
@@ -157,7 +175,11 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 	int nxt = nodes[cur].bst.find(x);
 
 	if (nxt != -1)
+	{
+		if (nodes[cur].bst.nodes[nxt].data == -1)
+			return false;
 		cur = nodes[cur].bst.nodes[nxt].data;
+	}
 	else
 		return false;
 
@@ -168,11 +190,12 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 	{
 		nodes[cur].bst = BST();
 
+		tail.lock();
 		nodes[free_tail].nxt = cur;
 		nodes[cur].nxt = 0;
 		free_tail = cur;
-
-		assert(nodes[old_cur].bst.remove_bst(x));
+		tail.unlock();
+		nodes[old_cur].bst.remove_bst(x);
 	}
 
 	return ret;
@@ -227,6 +250,9 @@ bool kvStore::del(int N, int cur = 0)
 		return false;
 
 	int x = nodes[cur].bst.nodes[nxt].c;
+	if (nodes[cur].bst.nodes[nxt].data == -1)
+		return false;
+
 	cur = nodes[cur].bst.nodes[nxt].data;
 
 	bool ret = del(N, cur);
@@ -235,12 +261,14 @@ bool kvStore::del(int N, int cur = 0)
 	if (!nodes[cur].bst.sz && !nodes[cur].end)
 	{
 		nodes[cur].bst = BST();
-
+		tail.lock();
 		nodes[free_tail].nxt = cur;
 		nodes[cur].nxt = 0;
+		// if (cur == -1)
+		// 	int t=5;
 		free_tail = cur;
-
-		assert(nodes[old_cur].bst.remove_bst(x));
+		tail.unlock();
+		nodes[old_cur].bst.remove_bst(x);
 	}
 	return ret;
 }

@@ -35,7 +35,7 @@ public:
 		size <<= 1;
 		BSTNode *new_nodes = (BSTNode *)calloc(size, sizeof(BSTNode));
 		memcpy(new_nodes, nodes, sizeof(BSTNode) * old_size);
-		delete[] nodes;
+		// delete[] nodes;
 		nodes = new_nodes;
 		nodes[free_tail].data = old_size;
 		for (int i = old_size; i < size - 1; i++)
@@ -118,6 +118,7 @@ public:
 	}
 	int find(int c)
 	{
+		// cout<<sz<<endl;
 		if (!sz)
 			return -1;
 		int cur = 0;
