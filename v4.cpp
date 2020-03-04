@@ -1,3 +1,8 @@
+// #pragma GCC OPTIMIZE("O2", "Ofast", "Os")
+// #pragma GCC optimize("O3")
+// #pragma GCC optimize("O2,Os,Ofast")
+// #pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
+
 #include <iostream>
 #include <string.h>
 #include "bst.cpp"
@@ -34,13 +39,13 @@ class kvStore
 {
 public:
 	kvStore(uint64_t max_entries);
-	bool get(Slice &key, Slice &value);			  //returns false if key didn’t exist
+	bool get(Slice &key, Slice &value);				   //returns false if key didn’t exist
 	bool put(Slice &key, Slice &value, int, int, int); //returns true if value overwritten
 	bool del(Slice &key, int, int, int);
-	bool get(int, Slice &key, Slice &value); //returns Nth key-value pair
+	bool get(int, Slice &key, Slice &value);  //returns Nth key-value pair
 	bool get2(int, Slice &key, Slice &value); //returns Nth key-value pair
-	bool del(int);						 //delete Nth key-value pair
-	bool del2(int, int, int);						 //delete Nth key-value pair
+	bool del(int);							  //delete Nth key-value pair
+	bool del2(int, int, int);				  //delete Nth key-value pair
 
 	bool resize();
 
@@ -90,13 +95,13 @@ bool kvStore::get(Slice &key, Slice &value)
 	int cur = 0;
 	for (int i = 0; i < 10; i++)
 	{
-		if(i == key.size)
+		if (i == key.size)
 			break;
-		uint8_t x;
+		int x;
 		encode(x, key.data[i]);
 
-		uint8_t node = nodes[cur].bst.find(x);
-		if (node == (uint8_t)-1)
+		int node = nodes[cur].bst.find(x);
+		if (node == (int)-1)
 			return false;
 		cur = nodes[cur].bst.nodes[node].data;
 		if (cur == -1)
@@ -105,16 +110,16 @@ bool kvStore::get(Slice &key, Slice &value)
 	if (!nodes[cur].end)
 		return false;
 
-	if(key.size <= 10)
+	if (key.size <= 10)
 	{
 		value = *nodes[cur].data;
 		return true;
 	}
 
-	if((int)key.size - 10 != (int)nodes[cur].key->size)
+	if ((int)key.size - 10 != (int)nodes[cur].key->size)
 		return false;
-	for(int i = 10;i<(int)key.size;i++)
-		if(key.data[i] != nodes[cur].key->data[i-10])
+	for (int i = 10; i < (int)key.size; i++)
+		if (key.data[i] != nodes[cur].key->data[i - 10])
 			return false;
 
 	value = *nodes[cur].data;
@@ -139,26 +144,26 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0, int lvl = 0)
 		return true;
 	}
 
-	if(lvl == 10)
+	if (lvl == 10)
 	{
 		nodes[cur].data = (Slice *)malloc(sizeof(value));
 		memcpy(nodes[cur].data, &value, sizeof(value));
 
-		nodes[cur].key = (Slice *) malloc(sizeof(Slice));
-		nodes[cur].key->data = (char*) malloc((int)key.size-10);
-		nodes[cur].key->size = (int)key.size-10;
-		memcpy(nodes[cur].key->data, key.data+10, (int)key.size-10);
+		nodes[cur].key = (Slice *)malloc(sizeof(Slice));
+		nodes[cur].key->data = (char *)malloc((int)key.size - 10);
+		nodes[cur].key->size = (int)key.size - 10;
+		memcpy(nodes[cur].key->data, key.data + 10, (int)key.size - 10);
 
 		nodes[cur].end = true;
 		return false;
 	}
 	int old_cur = cur;
-	uint8_t x;
+	int x;
 	encode(x, key.data[i]);
 
-	uint8_t node = nodes[cur].bst.find(x);
+	int node = nodes[cur].bst.find(x);
 
-	if (node != (uint8_t)-1)
+	if (node != (int)-1)
 	{
 		cur = nodes[cur].bst.nodes[node].data;
 		if (cur == -1)
@@ -189,14 +194,26 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0, int lvl = 0)
 	}
 	head.unlock();
 	tail.unlock();
-	bool ret = put(key, value, i + 1, cur, lvl+1);
+	bool ret = put(key, value, i + 1, cur, lvl + 1);
 	nodes[old_cur].bst.change_ends(x, 1 - ret);
 	return ret;
 }
 
 bool kvStore::del(Slice &key, int i = 0, int cur = 0, int lvl = 0)
 {
-	if (cur < 0)
+
+	if (key.data == NULL)
+		return false;
+
+	if (key.size <= 0 || key.size > 64)
+		return false;
+
+	// cout << "Deletion: " << cur << " " << i << " " << (int)key.size << " " << key.data << endl;
+	if (cur < 0 || (int)key.size < 0)
+		return false;
+
+	char c = key.data[i];
+	if (!key.size && !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')))
 		return false;
 
 	if (i == key.size)
@@ -209,27 +226,28 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0, int lvl = 0)
 		return false;
 	}
 
-	if(lvl == 10)
+	if (lvl == 10)
 	{
 		if (!nodes[cur].end || (int)key.size - 10 != (int)nodes[cur].key->size)
 			return false;
-		
-		for(int i = 10;i<(int)key.size;i++)
-			if(key.data[i] != nodes[cur].key->data[i-10])
+
+		for (int i = 10; i < (int)key.size; i++)
+			if (key.data[i] != nodes[cur].key->data[i - 10])
 				return false;
-		
+
 		nodes[cur].end = false;
 
-		delete nodes[cur].key;
+		// delete nodes[cur].key;
 		return true;
 	}
 
-	uint8_t x;
+	int x;
 	int old_cur = cur;
 	encode(x, key.data[i]);
-	uint8_t nxt = nodes[cur].bst.find(x);
+	int nxt = nodes[cur].bst.find(x);
+	// cout << "nxt " << nxt << endl;
 
-	if (nxt != (uint8_t)-1)
+	if (nxt != (int)-1)
 	{
 		if (nodes[cur].bst.nodes[nxt].data == -1)
 			return false;
@@ -238,7 +256,7 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0, int lvl = 0)
 	else
 		return false;
 
-	bool ret = del(key, i + 1, cur, lvl+1);
+	bool ret = del(key, i + 1, cur, lvl + 1);
 	nodes[old_cur].bst.change_ends(x, -ret);
 
 	if (!nodes[cur].bst.sz && !nodes[cur].end)
@@ -256,8 +274,12 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0, int lvl = 0)
 	return ret;
 }
 
-bool kvStore::get(int N, Slice &key, Slice &value){
-	return get2(N+1, key, value);
+bool kvStore::get(int N, Slice &key, Slice &value)
+{
+	if(key.data==NULL){
+		return false;
+	}
+	return get2(N + 1, key, value);
 }
 
 bool kvStore::get2(int N, Slice &key, Slice &value)
@@ -276,21 +298,21 @@ bool kvStore::get2(int N, Slice &key, Slice &value)
 			// memcpy(value.data, (nodes[cur].data)->data, 257);
 			// value.size = (nodes[cur].data)->size;
 			value = *nodes[cur].data;
-			if(lvl == 10 && nodes[cur].key != NULL)
-				for(int i = 0;i<nodes[cur].key->size;i++)
+			if (lvl == 10 && nodes[cur].key != NULL)
+				for (int i = 0; i < nodes[cur].key->size; i++)
 					array[temp.size++] = nodes[cur].key->data[i];
 			key = temp;
 			return true;
 		}
-		if(lvl == 10)
+		if (lvl == 10)
 			return false;
 		N -= nodes[cur].end;
-		uint8_t nxt = nodes[cur].bst.inorder(N);
-		if (nxt == (uint8_t)-1)
+		int nxt = nodes[cur].bst.inorder(N);
+		if (nxt == (int)-1)
 			return false;
 
-		uint8_t i = nodes[cur].bst.nodes[nxt].c;
-		if (i < (uint8_t)26)
+		int i = nodes[cur].bst.nodes[nxt].c;
+		if (i < (int)26)
 			array[temp.size] = (char)('A' + i);
 		else
 			array[temp.size] = (char)('a' + i - 26);
@@ -300,44 +322,55 @@ bool kvStore::get2(int N, Slice &key, Slice &value)
 			return false;
 		cur = nodes[cur].bst.nodes[nxt].data;
 		lvl++;
-
 	}
 	return false;
 }
 
-bool kvStore::del(int N){
-	return del2(N+1, 0, 0);
+bool kvStore::del(int N)
+{
+	// cout<<"lmaolmao"<<endl;
+	bool lmao=del2(N + 1, 0, 0);
+	// cout<<"lmao "<<lmao<<endl;
+	return lmao;
 }
 
 bool kvStore::del2(int N, int cur, int lvl)
 {
+	// cout<<"DEL2 "<<N<<" "<<cur<<" "<<lvl<<endl;
+	if(cur < 0 || cur > size)
+		return false;
 	if (N == 1 && nodes[cur].end)
-	{	
+	{
 		nodes[cur].end = false;
 		delete nodes[cur].key;
 
 		return true;
 	}
-	if(lvl == 10)
+	if (lvl == 10)
 		return false;
 
 	N -= nodes[cur].end;
 
 	int old_cur = cur;
-	uint8_t nxt = nodes[cur].bst.inorder(N);
-	if (nxt == (uint8_t)-1)
+	// cout<<"lol1 "<<cur<<endl;
+	int nxt = nodes[cur].bst.inorder(N);
+	// cout<<"lol2 "<<cur<<endl;
+	if (nxt == (int)-1)
 		return false;
 
-	uint8_t x = nodes[cur].bst.nodes[nxt].c;
+	int x = nodes[cur].bst.nodes[nxt].c;
 	if (nodes[cur].bst.nodes[nxt].data == -1)
 		return false;
 	cur = nodes[cur].bst.nodes[nxt].data;
-
-	bool ret = del2(N, cur, lvl+1);
+	// cout<<"lol3 "<<old_cur<<endl;
+	bool ret = del2(N, cur, lvl + 1);
+	// cout<<"lol4 "<<old_cur<<endl;
 	nodes[old_cur].bst.change_ends(x, -ret);
-
+	// cout<<"lol5 "<<old_cur<<endl;
+	// cout<<nodes[cur].bst.sz<<" "<<nodes[cur].end<<endl;
 	if (!nodes[cur].bst.sz && !nodes[cur].end)
 	{
+		// cout<<"lol6 "<<old_cur<<endl;
 		nodes[cur].bst = BST();
 		tail.lock();
 		nodes[free_tail].nxt = cur;
@@ -347,6 +380,8 @@ bool kvStore::del2(int N, int cur, int lvl)
 		free_tail = cur;
 		tail.unlock();
 		nodes[old_cur].bst.remove_bst(x);
+		// cout<<"lol7 "<<endl;
 	}
+	// cout<<"lol8 "<<old_cur<<endl;
 	return ret;
 }

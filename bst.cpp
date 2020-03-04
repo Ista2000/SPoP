@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string.h>
 using namespace std;
+#pragma GCC OPTIMIZE("O2", "Ofast", "Os")
+
 
 struct BSTNode
 {
@@ -51,6 +53,9 @@ public:
 	}
 	int inorder(int &N, int cur = 0)
 	{
+		// cout<<"INORDER: "<<N<<" "<<cur<<" "<<sz<<" "<<size<<endl;
+		if(cur < 0 || cur > size)
+			return -1;
 		if (nodes[cur].left == cur || nodes[cur].right == cur)
 			return -1;
 
@@ -135,6 +140,8 @@ public:
 				cur = nodes[cur].right;
 			else
 				cur = nodes[cur].left;
+			if(cur <= 0 || cur > size)
+				return -1;
 		}
 		return -1;
 	}
