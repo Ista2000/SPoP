@@ -35,7 +35,9 @@ public:
 		size <<= 1;
 		BSTNode *new_nodes = (BSTNode *)calloc(size, sizeof(BSTNode));
 		memcpy(new_nodes, nodes, sizeof(BSTNode) * old_size);
-		// delete[] nodes;
+
+		delete[] nodes;
+		// nodes = NULL;
 		nodes = new_nodes;
 		nodes[free_tail].data = old_size;
 		for (int i = old_size; i < size - 1; i++)
@@ -49,6 +51,9 @@ public:
 	}
 	int inorder(int &N, int cur = 0)
 	{
+		if (nodes[cur].left == cur || nodes[cur].right == cur)
+			return -1;
+
 		if (!sz || !N)
 			return -1;
 		int ret = -1;
@@ -104,7 +109,7 @@ public:
 		nodes[cur].ends = ends;
 		nodes[cur].left = nodes[cur].right = -1;
 		sz++;
-		if(size == sz + 1)
+		if (size == sz + 1)
 			resize();
 		return true;
 	}

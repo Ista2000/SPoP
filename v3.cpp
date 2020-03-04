@@ -37,7 +37,10 @@ public:
 	bool put(Slice &key, Slice &value, int, int); //returns true if value overwritten
 	bool del(Slice &key, int, int);
 	bool get(int, Slice &key, Slice &value); //returns Nth key-value pair
-	bool del(int, int);						 //delete Nth key-value pair
+	bool get2(int, Slice &key, Slice &value); //returns Nth key-value pair
+	bool del(int);						 //delete Nth key-value pair
+	bool del2(int, int);						 //delete Nth key-value pair
+
 	bool resize();
 
 	TrieNode *nodes;
@@ -65,7 +68,9 @@ bool kvStore::resize()
 	size <<= 1;
 	TrieNode *new_nodes = (TrieNode *)calloc(size, sizeof(TrieNode));
 	memcpy(new_nodes, nodes, sizeof(TrieNode) * old_size);
-	// delete[] nodes;
+	delete[] nodes;
+	// nodes = NULL;
+
 	nodes = new_nodes;
 	tail.lock();
 	nodes[free_tail].nxt = old_size;
@@ -86,10 +91,13 @@ bool kvStore::get(Slice &key, Slice &value)
 	{
 		int x;
 		encode(x, key.data[i]);
+
 		int node = nodes[cur].bst.find(x);
 		if (node == -1)
 			return false;
 		cur = nodes[cur].bst.nodes[node].data;
+		if (cur == -1)
+			return false;
 	}
 	if (!nodes[cur].end)
 		return false;
@@ -123,7 +131,11 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 	int node = nodes[cur].bst.find(x);
 
 	if (node != -1)
+	{
 		cur = nodes[cur].bst.nodes[node].data;
+		if (cur == -1)
+			return false;
+	}
 	else
 	{
 		head.lock();
@@ -201,7 +213,11 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 	return ret;
 }
 
-bool kvStore::get(int N, Slice &key, Slice &value)
+bool kvStore::get(int N, Slice &key, Slice &value){
+	return get2(N+1, key, value);
+}
+
+bool kvStore::get2(int N, Slice &key, Slice &value)
 {
 	Slice temp;
 	char *array = (char *)malloc(65);
@@ -230,11 +246,18 @@ bool kvStore::get(int N, Slice &key, Slice &value)
 			array[temp.size] = (char)('a' + i - 26);
 		temp.size++;
 
+		if (nodes[cur].bst.nodes[nxt].data == -1)
+			return false;
 		cur = nodes[cur].bst.nodes[nxt].data;
 	}
 	return false;
 }
-bool kvStore::del(int N, int cur = 0)
+
+bool kvStore::del(int N){
+	return del2(N+1, 0);
+}
+
+bool kvStore::del2(int N, int cur)
 {
 	if (N == 1 && nodes[cur].end)
 	{
@@ -252,10 +275,9 @@ bool kvStore::del(int N, int cur = 0)
 	int x = nodes[cur].bst.nodes[nxt].c;
 	if (nodes[cur].bst.nodes[nxt].data == -1)
 		return false;
-
 	cur = nodes[cur].bst.nodes[nxt].data;
 
-	bool ret = del(N, cur);
+	bool ret = del2(N, cur);
 	nodes[old_cur].bst.change_ends(x, -ret);
 
 	if (!nodes[cur].bst.sz && !nodes[cur].end)

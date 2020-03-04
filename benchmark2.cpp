@@ -59,6 +59,7 @@ void *myThreadFun(void *vargp)
 		{
 			transactions+=1;
 			int x = rand()%5;
+			// cout<<x<<endl;
 			if(x==0)
 			{
 				string key = random_key(rand()%64 + 1);
@@ -98,7 +99,7 @@ void *myThreadFun(void *vargp)
 					continue;
 				int rem = rand()%temp;
 				Slice s_key,s_value;
-				bool check = kv.get(rem+1,s_key,s_value);
+				bool check = kv.get(rem,s_key,s_value);
 			}
 			else if(x==4)
 			{
@@ -106,7 +107,7 @@ void *myThreadFun(void *vargp)
 				if (temp == 0)
 					continue;
 				int rem = rand()%temp;
-				bool check = kv.del(rem+1);
+				bool check = kv.del(rem);
 				db_size--;
 			}
 		}
@@ -119,7 +120,9 @@ void *myThreadFun(void *vargp)
 int main()
 {
 	srand(time(0));
-	for(int i=0;i<10000;i++)
+	struct timespec start, end;
+	double total=0;
+	for(int i=0;i<100000;i++)
 	{
 		string key = random_key(rand()%64 + 1);
 		string value = random_key(rand()%255 + 1);
@@ -127,16 +130,22 @@ int main()
 		Slice k,v;
 		strToSlice(key,k);
 		strToSlice(value,v);
+		clock_gettime(CLOCK_MONOTONIC, &start);
 		kv.put(k,v);
+		clock_gettime(CLOCK_MONOTONIC, &end);
+    	total += (end.tv_sec - start.tv_sec) + 1e-9 * (end.tv_nsec - start.tv_nsec);
+
 		db_size = db.size();
 	}
+
+	cout<<"Put worked, time: "<<total<<endl;
 
 	bool incorrect = false;
 
 	for(int i=0;i<10000;i++)
 	{
 		int x = rand()%5;
-		cout<<i/1000<<endl;
+		// cout<<i/1000<<endl;
 		if(x==0)
 		{
 			// cout<<"GET"<<endl;
@@ -199,7 +208,7 @@ int main()
 		{
 			int rem = rand()%db_size;
 			Slice s_key,s_value;
-			bool check = kv.get(rem+1,s_key,s_value);
+			bool check = kv.get(rem,s_key,s_value);
 			map<string,string>:: iterator itr = db.begin();
 			for(int i=0;i<rem;i++)itr++;
 			if( itr->first != sliceToStr(s_key) || itr->second != sliceToStr(s_value))
@@ -215,7 +224,7 @@ int main()
 			map<string,string>:: iterator itr = db.begin();
 			for(int i=0;i<rem;i++)itr++;
 			string key = itr->first;
-			bool check = kv.del(rem+1);
+			bool check = kv.del(rem);
 			db.erase(itr);
 			db_size--;
 			Slice s_key,s_value;
@@ -235,15 +244,15 @@ int main()
 		return 0;
 	}
 	cout<<"worked"<<endl;
-	// int threads = 4;
+	int threads = 4;
 
-	// pthread_t tid[threads];
-	// for (int i = 0; i < threads; i++) 
-	// {
-	// 	tid[i] = i;
- //        pthread_create(&tid[i], NULL, myThreadFun, (void *)&tid[i]); 
-	// }
-	// for(int i=0;i<threads;i++)
-	// 	pthread_join(tid[i],NULL);
+	pthread_t tid[threads];
+	for (int i = 0; i < threads; i++) 
+	{
+		tid[i] = i;
+        pthread_create(&tid[i], NULL, myThreadFun, (void *)&tid[i]); 
+	}
+	for(int i=0;i<threads;i++)
+		pthread_join(tid[i],NULL);
 	return 0;
 }
