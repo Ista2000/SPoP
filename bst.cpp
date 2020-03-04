@@ -4,8 +4,7 @@ using namespace std;
 
 struct BSTNode
 {
-	int left, right;
-	int c;
+	int left : 7, right : 7, c : 7;
 	int data;
 	int ends;
 };
@@ -14,7 +13,7 @@ class BST
 {
 public:
 	BSTNode *nodes;
-	int free_head, free_tail, sz, size;
+	int free_head:7, free_tail:7, sz:7, size:8;
 	BST()
 	{
 		size = 2;
@@ -73,7 +72,7 @@ public:
 
 		return -1;
 	}
-	bool insert(int c, int data, int ends)
+	bool insert(uint8_t c, int data, int ends)
 	{
 		int cur = 0;
 		while (1)
@@ -113,7 +112,7 @@ public:
 			resize();
 		return true;
 	}
-	bool change_ends(int c, int change)
+	bool change_ends(uint8_t c, int change)
 	{
 		int cur = find(c);
 		if (cur == -1)
@@ -121,7 +120,7 @@ public:
 		nodes[cur].ends += change;
 		return true;
 	}
-	int find(int c)
+	int find(uint8_t c)
 	{
 		// cout<<sz<<endl;
 		if (!sz)
@@ -138,7 +137,7 @@ public:
 		}
 		return -1;
 	}
-	int par(int c)
+	int par(uint8_t c)
 	{
 		if (!sz)
 			return -1;
@@ -155,7 +154,7 @@ public:
 		}
 		return -1;
 	}
-	bool remove_bst(int c)
+	bool remove_bst(uint8_t c)
 	{
 		if (!sz)
 			return false;

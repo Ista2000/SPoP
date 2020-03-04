@@ -45,7 +45,7 @@ public:
 
 	TrieNode *nodes;
 	int free_head, free_tail;
-	uint64_t size;
+	int size;
 };
 
 kvStore::kvStore(uint64_t max_entries)
@@ -89,11 +89,11 @@ bool kvStore::get(Slice &key, Slice &value)
 	int cur = 0;
 	for (int i = 0; i < key.size; i++)
 	{
-		int x;
+		uint8_t x;
 		encode(x, key.data[i]);
 
-		int node = nodes[cur].bst.find(x);
-		if (node == -1)
+		uint8_t node = nodes[cur].bst.find(x);
+		if (node == (uint8_t)-1)
 			return false;
 		cur = nodes[cur].bst.nodes[node].data;
 		if (cur == -1)
@@ -125,12 +125,12 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0)
 	}
 
 	int old_cur = cur;
-	int x;
+	uint8_t x;
 	encode(x, key.data[i]);
 
-	int node = nodes[cur].bst.find(x);
+	uint8_t node = nodes[cur].bst.find(x);
 
-	if (node != -1)
+	if (node != (uint8_t)-1)
 	{
 		cur = nodes[cur].bst.nodes[node].data;
 		if (cur == -1)
@@ -181,12 +181,12 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0)
 		return false;
 	}
 
-	int x;
+	uint8_t x;
 	int old_cur = cur;
 	encode(x, key.data[i]);
-	int nxt = nodes[cur].bst.find(x);
+	uint8_t nxt = nodes[cur].bst.find(x);
 
-	if (nxt != -1)
+	if (nxt != (uint8_t)-1)
 	{
 		if (nodes[cur].bst.nodes[nxt].data == -1)
 			return false;
@@ -228,19 +228,20 @@ bool kvStore::get2(int N, Slice &key, Slice &value)
 	{
 		if (N == 1 && nodes[cur].end)
 		{
-			value.data = (char *)malloc(257);
-			memcpy(value.data, (nodes[cur].data)->data, 257);
-			value.size = (nodes[cur].data)->size;
+			// value.data = (char *)malloc(257);
+			// memcpy(value.data, (nodes[cur].data)->data, 257);
+			// value.size = (nodes[cur].data)->size;
+			value = *nodes[cur].data;
 			key = temp;
 			return true;
 		}
 		N -= nodes[cur].end;
-		int nxt = nodes[cur].bst.inorder(N);
-		if (nxt == -1)
+		uint8_t nxt = nodes[cur].bst.inorder(N);
+		if (nxt == (uint8_t)-1)
 			return false;
 
-		int i = nodes[cur].bst.nodes[nxt].c;
-		if (i < 26)
+		uint8_t i = nodes[cur].bst.nodes[nxt].c;
+		if (i < (uint8_t)26)
 			array[temp.size] = (char)('A' + i);
 		else
 			array[temp.size] = (char)('a' + i - 26);
@@ -268,11 +269,11 @@ bool kvStore::del2(int N, int cur)
 	N -= nodes[cur].end;
 
 	int old_cur = cur;
-	int nxt = nodes[cur].bst.inorder(N);
-	if (nxt == -1)
+	uint8_t nxt = nodes[cur].bst.inorder(N);
+	if (nxt == (uint8_t)-1)
 		return false;
 
-	int x = nodes[cur].bst.nodes[nxt].c;
+	uint8_t x = nodes[cur].bst.nodes[nxt].c;
 	if (nodes[cur].bst.nodes[nxt].data == -1)
 		return false;
 	cur = nodes[cur].bst.nodes[nxt].data;
