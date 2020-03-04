@@ -13,7 +13,7 @@ class BST
 {
 public:
 	BSTNode *nodes;
-	int free_head:7, free_tail:7, sz:7, size:8;
+	int free_head : 7, free_tail : 7, sz : 7, size : 8;
 	BST()
 	{
 		size = 2;
@@ -32,6 +32,7 @@ public:
 	{
 		int old_size = size;
 		size <<= 1;
+		size = min(53, size);
 		BSTNode *new_nodes = (BSTNode *)calloc(size, sizeof(BSTNode));
 		memcpy(new_nodes, nodes, sizeof(BSTNode) * old_size);
 
