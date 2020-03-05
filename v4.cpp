@@ -1,3 +1,4 @@
+#pragma GCC optimize("O2,Os,Ofast,no-signed-zeros,no-trapping-math,rename-registers,unroll-loops")
 #include <iostream>
 #include <string.h>
 #include "bst.cpp"
@@ -33,14 +34,14 @@ struct TrieNode
 class kvStore
 {
 public:
-	kvStore(uint64_t max_entries);
-	bool get(Slice &key, Slice &value);			  //returns false if key didn’t exist
-	bool put(Slice &key, Slice &value, int, int, int); //returns true if value overwritten
-	bool del(Slice &key, int, int, int);
-	bool get(int, Slice &key, Slice &value); //returns Nth key-value pair
-	bool get2(int, Slice &key, Slice &value); //returns Nth key-value pair
-	bool del(int);						 //delete Nth key-value pair
-	bool del2(int, int, int);						 //delete Nth key-value pair
+	kvStore(uint64_t max_entries)__attribute__((aligned(256),cold));
+	bool get(Slice &key, Slice &value)__attribute__((aligned(256)));//returns false if key didn’t exist
+	bool put(Slice &key, Slice &value, int, int, int)__attribute__((aligned(256))); //returns true if value overwritten
+	bool del(Slice &key, int, int, int)__attribute__((aligned(256)));
+	bool get(int, Slice &key, Slice &value)__attribute__((aligned(256))); //returns Nth key-value pair
+	bool get2(int, Slice &key, Slice &value)__attribute__((aligned(256),hot)); //returns Nth key-value pair
+	bool del(int)__attribute__((aligned(256)));						 //delete Nth key-value pair
+	bool del2(int, int, int)__attribute__((aligned(256),hot));						 //delete Nth key-value pair
 
 	bool resize();
 
@@ -56,7 +57,7 @@ kvStore::kvStore(uint64_t max_entries)
 	nodes[0].nxt = -1;
 	nodes[0].bst = *((BST *)calloc(1, sizeof(BST)));
 	nodes[0].bst = BST();
-	for (int i = 1; i < 127; i++)
+	for (register int i = 1; i < 127; i++)
 		nodes[i].nxt = i + 1;
 	free_head = 1;
 	free_tail = 127;
@@ -76,7 +77,7 @@ bool kvStore::resize()
 	tail.lock();
 	nodes[free_tail].nxt = old_size;
 	tail.unlock();
-	for (int i = old_size; i < size - 1; i++)
+	for (register int i = old_size; i < size - 1; i++)
 		nodes[i].nxt = i + 1;
 	tail.lock();
 	// assert(size != 0);
@@ -85,10 +86,10 @@ bool kvStore::resize()
 	return true;
 }
 
-bool kvStore::get(Slice &key, Slice &value)
+inline bool kvStore::get(Slice &key, Slice &value)
 {
-	int cur = 0;
-	for (int i = 0; i < 10; i++)
+	register int cur = 0;
+	for (int i = 0; i < 7; i++)
 	{
 		if(i == key.size)
 			break;
@@ -105,23 +106,23 @@ bool kvStore::get(Slice &key, Slice &value)
 	if (!nodes[cur].end)
 		return false;
 
-	if(key.size <= 10)
+	if(key.size <= 7)
 	{
 		value = *nodes[cur].data;
 		return true;
 	}
 
-	if((int)key.size - 10 != (int)nodes[cur].key->size)
+	if(key.size - (uint8_t)7 != nodes[cur].key->size)
 		return false;
-	for(int i = 10;i<(int)key.size;i++)
-		if(key.data[i] != nodes[cur].key->data[i-10])
+	for(uint8_t i = 7;i<key.size;i++)
+		if(key.data[i] != nodes[cur].key->data[i-7])
 			return false;
 
 	value = *nodes[cur].data;
 	return true;
 }
 
-bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0, int lvl = 0)
+inline bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0, int lvl = 0)
 {
 	if (cur < 0)
 		return false;
@@ -139,15 +140,15 @@ bool kvStore::put(Slice &key, Slice &value, int i = 0, int cur = 0, int lvl = 0)
 		return true;
 	}
 
-	if(lvl == 10)
+	if(lvl == 7)
 	{
 		nodes[cur].data = (Slice *)malloc(sizeof(value));
 		memcpy(nodes[cur].data, &value, sizeof(value));
 
 		nodes[cur].key = (Slice *) malloc(sizeof(Slice));
-		nodes[cur].key->data = (char*) malloc((int)key.size-10);
-		nodes[cur].key->size = (int)key.size-10;
-		memcpy(nodes[cur].key->data, key.data+10, (int)key.size-10);
+		nodes[cur].key->data = (char*) malloc((int)key.size-7);
+		nodes[cur].key->size = (int)key.size-7;
+		memcpy(nodes[cur].key->data, key.data+7, (int)key.size-7);
 
 		nodes[cur].end = true;
 		return false;
@@ -209,13 +210,13 @@ bool kvStore::del(Slice &key, int i = 0, int cur = 0, int lvl = 0)
 		return false;
 	}
 
-	if(lvl == 10)
+	if(lvl == 7)
 	{
-		if (!nodes[cur].end || (int)key.size - 10 != (int)nodes[cur].key->size)
+		if (!nodes[cur].end || key.size - (uint8_t)7 != nodes[cur].key->size)
 			return false;
 		
-		for(int i = 10;i<(int)key.size;i++)
-			if(key.data[i] != nodes[cur].key->data[i-10])
+		for(uint8_t i = 7;i<key.size;i++)
+			if(key.data[i] != nodes[cur].key->data[i-7])
 				return false;
 		
 		nodes[cur].end = false;
@@ -260,14 +261,14 @@ bool kvStore::get(int N, Slice &key, Slice &value){
 	return get2(N+1, key, value);
 }
 
-bool kvStore::get2(int N, Slice &key, Slice &value)
+inline bool kvStore::get2(int N, Slice &key, Slice &value)
 {
 	Slice temp;
 	char *array = (char *)malloc(65);
 	temp.data = array;
 	temp.size = 0;
-	int cur = 0;
-	int lvl = 0;
+	register int cur = 0;
+	register int lvl = 0;
 	while (1)
 	{
 		if (N == 1 && nodes[cur].end)
@@ -276,13 +277,13 @@ bool kvStore::get2(int N, Slice &key, Slice &value)
 			// memcpy(value.data, (nodes[cur].data)->data, 257);
 			// value.size = (nodes[cur].data)->size;
 			value = *nodes[cur].data;
-			if(lvl == 10 && nodes[cur].key != NULL)
+			if(lvl == 7 && nodes[cur].key != NULL)
 				for(int i = 0;i<nodes[cur].key->size;i++)
 					array[temp.size++] = nodes[cur].key->data[i];
 			key = temp;
 			return true;
 		}
-		if(lvl == 10)
+		if(lvl == 7)
 			return false;
 		N -= nodes[cur].end;
 		uint8_t nxt = nodes[cur].bst.inorder(N);
@@ -309,7 +310,7 @@ bool kvStore::del(int N){
 	return del2(N+1, 0, 0);
 }
 
-bool kvStore::del2(int N, int cur, int lvl)
+inline bool kvStore::del2(int N, int cur, int lvl)
 {
 	if (N == 1 && nodes[cur].end)
 	{	
@@ -318,7 +319,7 @@ bool kvStore::del2(int N, int cur, int lvl)
 
 		return true;
 	}
-	if(lvl == 10)
+	if(lvl == 7)
 		return false;
 
 	N -= nodes[cur].end;

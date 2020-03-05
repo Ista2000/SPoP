@@ -1,8 +1,7 @@
 #include <iostream>
 #include <string.h>
 using namespace std;
-#pragma GCC OPTIMIZE("O2", "Ofast", "Os")
-
+// #pragma GCC OPTIMIZE("O2", "Ofast", "Os")
 
 struct BSTNode
 {
@@ -14,9 +13,19 @@ struct BSTNode
 class BST
 {
 public:
+	BST()__attribute__((aligned(256),hot));
+	bool resize()__attribute__((aligned(256),cold));
+	int inorder(int &, int)__attribute__((aligned(256),hot));
+	bool insert(uint8_t, int, int)__attribute__((aligned(256)));
+	bool change_ends(uint8_t, int)__attribute__((aligned(256)));
+	int find(uint8_t c)__attribute__((aligned(256),hot));
+	int par(uint8_t c)__attribute__((aligned(256)));
+	bool remove_bst(uint8_t c)__attribute__((aligned(256)));
+
 	BSTNode *nodes;
 	int free_head : 7, free_tail : 7, sz : 7, size : 8;
-	BST()
+};
+	inline BST::BST()
 	{
 		size = 2;
 		nodes = (BSTNode *)malloc(size * sizeof(BSTNode));
@@ -30,7 +39,7 @@ public:
 			nodes[i].right = -1;
 		}
 	}
-	bool resize()
+	bool BST::resize()
 	{
 		int old_size = size;
 		size <<= 1;
@@ -51,17 +60,17 @@ public:
 		free_tail = size - 1;
 		return true;
 	}
-	int inorder(int &N, int cur = 0)
+	int BST::inorder(int &N, int cur = 0)
 	{
 		// cout<<"INORDER: "<<N<<" "<<cur<<" "<<sz<<" "<<size<<endl;
-		if(cur < 0 || cur > size)
+		if (cur < 0 || cur > size)
 			return -1;
 		if (nodes[cur].left == cur || nodes[cur].right == cur)
 			return -1;
 
 		if (!sz || !N)
 			return -1;
-		int ret = -1;
+		register int ret = -1;
 		if (nodes[cur].left != -1)
 			ret = inorder(N, nodes[cur].left);
 
@@ -78,9 +87,9 @@ public:
 
 		return -1;
 	}
-	bool insert(uint8_t c, int data, int ends)
+	bool BST::insert(uint8_t c, int data, int ends)
 	{
-		int cur = 0;
+		register int cur = 0;
 		while (1)
 		{
 			if (!sz)
@@ -118,7 +127,7 @@ public:
 			resize();
 		return true;
 	}
-	bool change_ends(uint8_t c, int change)
+	bool BST::change_ends(uint8_t c, int change)
 	{
 		int cur = find(c);
 		if (cur == -1)
@@ -126,7 +135,7 @@ public:
 		nodes[cur].ends += change;
 		return true;
 	}
-	int find(uint8_t c)
+	inline int BST::find(uint8_t c)
 	{
 		// cout<<sz<<endl;
 		if (!sz)
@@ -140,12 +149,12 @@ public:
 				cur = nodes[cur].right;
 			else
 				cur = nodes[cur].left;
-			if(cur <= 0 || cur > size)
+			if (cur <= 0 || cur > size)
 				return -1;
 		}
 		return -1;
 	}
-	int par(uint8_t c)
+	int BST::par(uint8_t c)
 	{
 		if (!sz)
 			return -1;
@@ -162,7 +171,7 @@ public:
 		}
 		return -1;
 	}
-	bool remove_bst(uint8_t c)
+	bool BST::remove_bst(uint8_t c)
 	{
 		if (!sz)
 			return false;
@@ -226,4 +235,3 @@ public:
 		}
 		return true;
 	}
-};
